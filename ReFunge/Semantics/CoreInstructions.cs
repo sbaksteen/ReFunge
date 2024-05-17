@@ -1,4 +1,5 @@
-﻿using ReFunge.Data.Values;
+﻿using ReFunge.Data;
+using ReFunge.Data.Values;
 
 namespace ReFunge.Semantics
 {
@@ -319,74 +320,75 @@ namespace ReFunge.Semantics
         public static readonly FungeFunc SysInfo = 
             new FungeAction<FungeInt>((ip, n) =>
             {
+                var tempStack = new FungeStack();
                 var s = ip.StackStack.TOSS.Size;
 
                 // Environment variables
-                ip.PushToStack(0);
+                tempStack.Push(0);
                 var env = Environment.GetEnvironmentVariables();
                 foreach (System.Collections.DictionaryEntry de in env)
                 {
-                    ip.PushStringToStack(de.Key + "=" + de.Value);
+                    tempStack.PushString(de.Key + "=" + de.Value);
                 }
 
                 // Command line arguments
-                ip.PushToStack(0);
+                tempStack.Push(0);
+                tempStack.Push(0);
                 var args = Environment.GetCommandLineArgs();
                 foreach (var arg in args)
                 {
-                    ip.PushStringToStack(arg);
+                    tempStack.PushString(arg);
                 }
 
                 // Sizes of all stacks
                 for (var i = ip.StackStack.Size - 1; i >= 0; i--)
                 {
-                    ip.PushToStack(ip.StackStack[i].Size);
+                    tempStack.Push(ip.StackStack[i].Size);
                 }
-                ip.PushToStack(s);
 
                 // Size of stack stack
-                ip.PushToStack(ip.StackStack.Size);
+                tempStack.Push(ip.StackStack.Size);
 
                 // Current time (hours * 256 * 256 + minutes * 256 + seconds)
                 var now = DateTime.Now;
-                ip.PushToStack(now.Hour * 256 * 256 + now.Minute * 256 + now.Second);
+                tempStack.Push(now.Hour * 256 * 256 + now.Minute * 256 + now.Second);
 
                 // Current date ((year - 1900) * 256 * 256 + month * 256 + day)
-                ip.PushToStack((now.Year - 1900) * 256 * 256 + now.Month * 256 + now.Day);
+                tempStack.Push((now.Year - 1900) * 256 * 256 + now.Month * 256 + now.Day);
 
                 // Upper bound of Funge-Space, relative to the lower bound
-                ip.PushVectorToStack(ip.Space.MaxCoords - ip.Space.MinCoords);
+                tempStack.PushVector(ip.Space.MaxCoords - ip.Space.MinCoords, ip.Dim);
                 // Lower bound of Funge-Space
-                ip.PushVectorToStack(ip.Space.MinCoords);
+                tempStack.PushVector(ip.Space.MinCoords, ip.Dim);
 
                 // Current storage offset
-                ip.PushVectorToStack(ip.StorageOffset);
+                tempStack.PushVector(ip.StorageOffset, ip.Dim);
                 // Current delta
-                ip.PushVectorToStack(ip.Delta);
+                tempStack.PushVector(ip.Delta, ip.Dim);
                 // Current position
-                ip.PushVectorToStack(ip.Position);
+                tempStack.PushVector(ip.Position, ip.Dim);
 
                 // Team number of IP
-                ip.PushToStack(0);
+                tempStack.Push(0);
                 // ID of the IP
-                ip.PushToStack(ip.ID);
+                tempStack.Push(ip.ID);
                 // Number of dimensions
-                ip.PushToStack(ip.Dim);
+                tempStack.Push(ip.Dim);
 
                 // Path separator character
-                ip.PushToStack(Path.DirectorySeparatorChar);
+                tempStack.Push(Path.DirectorySeparatorChar);
 
-                // Behavior of '='
-                ip.PushToStack(0);
+                // Behavior of '=': Unimplemented
+                tempStack.Push(0);
 
                 // Version number of ReFunge
-                ip.PushToStack(101); // Current version: 1.01, we can't really push 0.01.
+                tempStack.Push(101); // Current version: 1.01, we can't really push 0.01.
 
                 // Implementation handprint: ReFn
-                ip.PushToStack(new FungeString("ReFn").Handprint);
+                tempStack.Push(new FungeString("ReFn").Handprint);
 
                 // Amount of bytes per cell
-                ip.PushToStack(4);
+                tempStack.Push(4);
 
                 // Misc. flags:
                 // LSB (0x01): 1 to indicate that 't' is implemented
@@ -394,12 +396,19 @@ namespace ReFunge.Semantics
                 // 0x04: 1 to indicate that 'o' is implemented
                 // 0x08: 0 to indicate that '=' is not implemented
                 // 0x10: 0 to indicate that input is buffered
-                ip.PushToStack(0x07);
+                tempStack.Push(0x07);
 
-                if (n <= 0) return;
-                var r = ip.StackStack.TOSS[n-1];
-                ip.StackStack.TOSS.Clear();
-                ip.PushToStack(r);
+                if (n > 0)
+                {
+                    ip.PushToStack(tempStack[n-1]);
+                }
+                else
+                {
+                    for (var i = tempStack.Size-1; i >= 0; i--)
+                    {
+                        ip.PushToStack(tempStack[i]);
+                    }
+                }
             });
 
         [Instruction('j')]
@@ -448,8 +457,8 @@ namespace ReFunge.Semantics
             new FungeAction<FungeInt>((ip, n) =>
             {
                 ip.StackStack.NewStack(n);
-                ip.PushVectorToStack(ip.StorageOffset);
-                ip.StorageOffset = ip.NextPosition();
+                ip.StackStack.SOSS.PushVector(ip.StorageOffset, ip.Dim);
+                ip.StorageOffset = ip.Position + ip.Delta;
             });
 
         [Instruction('}')]
@@ -494,7 +503,6 @@ namespace ReFunge.Semantics
             {
                 var newIP = ip.Split(ip.Interpreter.IPID++);
                 ip.Interpreter.AddNewIP(newIP, ip);
-                
             });
 
         [Instruction('(')]

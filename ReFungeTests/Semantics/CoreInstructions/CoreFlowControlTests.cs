@@ -296,7 +296,6 @@ internal partial class CoreInstructionsTests
             var d = new FungeVector(1, 0, 0);
             ip3D.Delta = d;
             ip3D.PushToStack(n);
-            var p = ip3D.Position;
             CoreInstructions.JumpForward.Execute(ip3D);
             Assert.That(ip3D.Position, Is.EqualTo(new FungeVector(n, 0, 0)));
         }
