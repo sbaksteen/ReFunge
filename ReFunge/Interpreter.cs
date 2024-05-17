@@ -25,18 +25,16 @@ namespace ReFunge
         
         internal TextReader Input;
 
-        public Interpreter(TextReader? input = null, TextWriter? output = null, int dim = 2)
+        internal TextWriter Error;
+
+        public Interpreter(int dim = 2, TextReader? input = null, TextWriter? output = null, TextWriter? errorOutput = null)
         {
-            if (input is null)
-            {
-                input = Console.In;
-            }
-            if (output is null)
-            {
-                output = Console.Out;
-            }
+            input ??= Console.In;
+            output ??= Console.Out;
+            errorOutput ??= Console.Error;
             Output = output;
             Input = input;
+            Error = errorOutput;
             PrimarySpace = new FungeSpace(dim);
             IPList.Add(new FungeIP(IPID++, PrimarySpace, this));
         }
@@ -44,6 +42,11 @@ namespace ReFunge
         public void AddNewIP(FungeIP ip, FungeIP? parent = null)
         {
             NewIPList.Add((ip, parent));
+        }
+
+        public void WriteError(string s)
+        {
+            Error.Write(s);
         }
 
         public void WriteCharacter(char c)

@@ -1,4 +1,5 @@
-﻿using ReFunge.Data;
+﻿using System.Runtime.InteropServices.JavaScript;
+using ReFunge.Data;
 using ReFunge.Data.Values;
 using ReFunge.Semantics;
 
@@ -63,7 +64,7 @@ namespace ReFunge
             }
             else
             {
-                throw new NotImplementedException("Unknown command: " + op + " (" + (char)op + ")");
+                Interpreter.WriteError("Unknown command: " + op + " (" + (char)op + ")\n");
             }
         }
 

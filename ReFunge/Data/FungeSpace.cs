@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text;
+using System.Text.RegularExpressions;
 using ReFunge.Data.Values;
 
 namespace ReFunge.Data
@@ -130,14 +131,15 @@ namespace ReFunge.Data
             return position - delta * steps;
         }
 
-        public FungeVector LoadCharacters(FungeVector position, char[] chars, bool binary = false)
+        public FungeVector LoadFromReader(FungeVector position, TextReader reader, bool binary = false)
         {
             var x = position[0];
             var y = position[1];
             var z = position[2];
             var maxX = 0;
             var maxY = 0;
-            foreach (var c in chars)
+            var c = reader.Read();
+            while (c != -1)
             {
                 if (!binary)
                 {
@@ -146,28 +148,31 @@ namespace ReFunge.Data
                         case '\r':
                         case '\n' when Dim < 2:
                         case '\f' when Dim < 3:
+                            c = reader.Read();
                             continue;
                         case '\n' when Dim > 1:
                         {
-                            if (x - position[0] - 1 > maxX)
+                            if (x - position[0] > maxX)
                             {
-                                maxX = x - position[0] - 1;
+                                maxX = x - position[0];
                             }
 
                             x = position[0];
                             y++;
+                            c = reader.Read();
                             continue;
                         }
                         case '\f' when Dim > 2:
                         {
-                            if (y - position[1] > maxY)
+                            if (y - position[1] + 1 > maxY)
                             {
-                                maxY = y - position[1];
+                                maxY = y - position[1] + 1;
                             }
 
                             x = position[0];
                             y = position[1];
                             z++;
+                            c = reader.Read();
                             continue;
                         }
                     }
@@ -178,17 +183,19 @@ namespace ReFunge.Data
                     this[x, y, z] = c;
                 }
 
+                c = reader.Read();
                 x++;
             }
-            if (x - position[0] - 1 > maxX)
+            reader.Close();
+            if (x - position[0] > maxX)
             {
-                maxX = x - position[0] - 1;
+                maxX = x - position[0];
             }
-            if (y - position[1] > maxY)
+            if (y - position[1] + 1 > maxY)
             {
                 maxY = y - position[1];
             }
-            var maxZ = z - position[2];
+            var maxZ = z - position[2] + 1;
             return Dim switch
             {
                 > 2 => new FungeVector(maxX, maxY, maxZ),
@@ -197,69 +204,121 @@ namespace ReFunge.Data
             };
         }
 
-        public FungeVector LoadString(FungeVector position, string data, bool binary = false) => 
-            LoadCharacters(position, data.ToCharArray(), binary);
+        public FungeVector LoadString(FungeVector position, string data, bool binary = false)
+        {
+            var reader = new StringReader(data);
+            return LoadFromReader(position, reader, binary);
+        }
 
         public FungeVector LoadFile(FungeVector position, string path, bool binary = false)
         {
-            char[] chars;
-            if (binary)
-            {
-                chars = File.ReadAllBytes(path).Select(b => (char)b).ToArray();
-            } else
-            {
-                chars = File.ReadAllText(path).ToCharArray();
-            }
-            return LoadCharacters(position, chars, binary);
+            var detectEncoding = true;
+            var reader = new StreamReader(path, detectEncoding);
+            return LoadFromReader(position, reader, binary);
         }
 
-        public string WriteToString(FungeVector position, FungeVector size, bool linear = false)
+        public void WriteToWriter(FungeVector position, FungeVector size, TextWriter writer, bool linear = false)
         {
             if (size.Dim > 3)
             {
+                writer.Close();
                 throw new ArgumentException("Can't output 4D or higher Funge-Space!");
             }
             for (var i = 0; i < size.Dim; i++)
             {
-                if (size[i] < 0)
+                if (size[i] <= 0)
                 {
-                    throw new ArgumentException("Size can't be negative!");
+                    writer.Close();
+                    throw new ArgumentException("Size can't be non-positive!");
                 }
             }
-            var writer = new StringWriter();
             var end = position + size;
             var x = position[0];
             var y = position[1];
             var z = position[2];
-            while (x <= end[0] || y != end[1] || z != end[2])
+            var feedsWithoutContent = 0;
+            while (z != end[2] || Dim < 3)
             {
-                if (x > end[0] && size.Dim > 1)
+                var linesWithoutContent = 0;
+                while (y != end[1] || Dim < 2)
                 {
-                    x = position[0];
-                    y++;
-                    if (y > end[1] && size.Dim > 2)
+                    while (x != end[0])
                     {
-                        y = position[1];
-                        z++;
-                        writer.Write('\f');
-                        continue;
+                        var spaces = 0;
+                        var c = this[x, y, z];
+                        while (linear && c == ' ' && x < end[0])
+                        {
+                            spaces++;
+                            c = this[++x, y, z];
+                        }
+
+                        if (x == end[0])
+                        {
+                            continue;
+                        }
+                        if (linear && x < end[0])
+                        {
+                            if (feedsWithoutContent > 0)
+                            {
+                                writer.Write(new string('\f', feedsWithoutContent));
+                                feedsWithoutContent = 0;
+                            }
+                            if (linesWithoutContent > 0)
+                            {
+                                writer.Write(new string('\n', linesWithoutContent));
+                                linesWithoutContent = 0;
+                            }
+                            if (spaces > 0)
+                            {
+                                writer.Write(new string(' ', spaces));
+                            }
+                        }
+                        writer.Write((char)this[x++,y,z]);
                     }
-                    writer.Write('\n');
-                    continue;
+
+                    if (Dim < 2)
+                    {
+                        return;
+                    }
+                    
+                    linesWithoutContent++;
+
+                    y++;
+                    x = position[0];
+                    if (!linear && y != end[1])
+                    {
+                        writer.Write('\n');
+                    }
                 }
-                writer.Write((char)this[x++,y,z]);
+
+                if (Dim < 3)
+                {
+                    return;
+                }
+                
+                feedsWithoutContent++;
+                
+                z++;
+                y = position[1];
+                if (!linear && z != end[2])
+                {
+                    writer.Write('\f');
+                }
             }
-            var data = writer.ToString();
-            if (linear)
-            {
-                data = Regex.Replace(data, "[\n\f ]+$|[\n ]+(?=\f)| +(?=\n)", "");
-            }
-            return data;
+        }
+        
+        public string WriteToString(FungeVector position, FungeVector size, bool linear = false)
+        {
+            var writer = new StringWriter();
+            WriteToWriter(position, size, writer, linear);
+            return writer.ToString();
         }
 
         public void WriteToFile(FungeVector position, FungeVector size, string filename, bool linear = false)
         {
-            File.WriteAllText(filename, WriteToString(position, size, linear));
+            var writer = new StreamWriter(filename);
+            WriteToWriter(position, size, writer, linear);
+            writer.Close();
         }
 
         internal FungeInt this[params int[] ints]

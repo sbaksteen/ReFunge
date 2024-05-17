@@ -116,13 +116,18 @@ namespace ReFunge.Data
             }
             return newStack;
         }
+        
+        public void PushStack(FungeStack stack)
+        {
+            _stack.Push(stack);
+        }
 
         public void NewStack(int n)
         {
             List<int> newStack = [];
             for (var i = 0; i < n; i++)
             {
-                newStack.Add(TOSS.Pop());
+                newStack.Insert(0, TOSS.Pop());
             }
             if (n < 0)
             {

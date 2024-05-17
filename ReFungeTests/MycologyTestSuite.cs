@@ -31,8 +31,9 @@ public class MycologyTestSuite
     {
         var bfOutput = new StringWriter();
         var bfInput = new StringReader("");
+        var bfError = new StringWriter();
         
-        Interpreter interpreter = new(bfInput, bfOutput);
+        Interpreter interpreter = new(2, bfInput, bfOutput, bfError);
         interpreter.Load("sanity.bf");
         interpreter.Run();
 
@@ -47,8 +48,9 @@ public class MycologyTestSuite
     {
         var bfOutput = new StringWriter();
         var bfInput = new StringReader("");
+        var bfError = new StringWriter();
         
-        Interpreter interpreter = new(bfInput, bfOutput);
+        Interpreter interpreter = new(2, bfInput, bfOutput, bfError);
         interpreter.Load("mycology.b98");
         while (interpreter is { Tick: < 10000000, Quit: false, IPList.Count: > 0 })
         {
@@ -73,7 +75,7 @@ public class MycologyTestSuite
                 goods++;
             }
 
-            if (line.Contains("UNDEF"))
+            if (true)
             {
                 Console.Out.WriteLine(line);
             }
@@ -81,5 +83,14 @@ public class MycologyTestSuite
         Assert.That(goods, Is.GreaterThan(100));
 
         Assert.Pass();
+    }
+
+    [OneTimeTearDown]
+    public void TearDown()
+    {
+        for (int i = 0; i < 9; i++)
+        {
+            File.Delete($"mycotmp{i}.tmp");
+        }
     }
 }
