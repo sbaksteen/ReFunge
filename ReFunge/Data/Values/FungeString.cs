@@ -4,49 +4,20 @@ namespace ReFunge.Data.Values
 {
     internal readonly struct FungeString(string value) : IFungeValue<FungeString>, IEnumerable<char>
     {
-        private readonly string Value = value;
+        private readonly string _value = value;
 
-        public int Handprint
-        {
-            get
-            {
-                int r = 0;
-                foreach (char c in this)
-                {
-                    r = r * 256 + c;
-                }
-                return r;
-            }
-        }
+        public int Handprint => this.Aggregate(0, (current, c) => current * 256 + c);
 
-        public static implicit operator FungeString(string value)
-        {
-            return new FungeString(value);
-        }
+        public static implicit operator FungeString(string value) => new(value);
 
-        public static implicit operator string(FungeString me)
-        {
-            return me.Value;
-        }
+        public static implicit operator string(FungeString me) => me._value;
 
-        public static FungeString PopFromStack(FungeIP ip)
-        {
-            return ip.PopStringFromStack();
-        }
+        public static FungeString PopFromStack(FungeIP ip) => ip.PopStringFromStack();
 
-        public void PushToStack(FungeIP ip)
-        {
-            ip.PushStringToStack(this);
-        }
+        public void PushToStack(FungeIP ip) => ip.PushStringToStack(this);
 
-        public IEnumerator<char> GetEnumerator()
-        {
-            return ((IEnumerable<char>)Value).GetEnumerator();
-        }
+        public IEnumerator<char> GetEnumerator() => ((IEnumerable<char>)_value).GetEnumerator();
 
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return ((IEnumerable)Value).GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_value).GetEnumerator();
     }
 }

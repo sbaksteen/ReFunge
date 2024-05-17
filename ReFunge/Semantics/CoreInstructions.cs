@@ -31,16 +31,16 @@ namespace ReFunge.Semantics
 
         [Instruction('>')]
         public static readonly FungeFunc GoRight = 
-            new FungeAction(ip => ip.Delta = FungeVector.RIGHT);
+            new FungeAction(ip => ip.Delta = FungeVector.Right);
         [Instruction('<')]
         public static readonly FungeFunc GoLeft = 
-            new FungeAction(ip => ip.Delta = FungeVector.LEFT);
+            new FungeAction(ip => ip.Delta = FungeVector.Left);
         [Instruction('^')]
         public static readonly FungeFunc GoUp = 
             new FungeAction(ip =>
         {
             if (ip.Dim > 1)
-                ip.Delta = FungeVector.UP;
+                ip.Delta = FungeVector.Up;
             else
                 ip.Reflect();
         });
@@ -49,7 +49,7 @@ namespace ReFunge.Semantics
             new FungeAction(ip =>
         {
             if (ip.Dim > 1)
-                ip.Delta = FungeVector.DOWN;
+                ip.Delta = FungeVector.Down;
             else
                 ip.Reflect();
         });
@@ -58,7 +58,7 @@ namespace ReFunge.Semantics
             new FungeAction(ip =>
         {
             if (ip.Dim > 2)
-                ip.Delta = FungeVector.FORWARDS;
+                ip.Delta = FungeVector.Forwards;
             else
                 ip.Reflect();
         });
@@ -67,7 +67,7 @@ namespace ReFunge.Semantics
             new FungeAction(ip =>
         {
             if (ip.Dim > 2)
-                ip.Delta = FungeVector.BACKWARDS;
+                ip.Delta = FungeVector.Backwards;
             else
                 ip.Reflect();
         });
@@ -76,7 +76,7 @@ namespace ReFunge.Semantics
         public static readonly FungeFunc DecideHorizontal = 
             new FungeAction<FungeInt>((ip, v) =>
         {
-            ip.Delta = v == 0 ? FungeVector.RIGHT : FungeVector.LEFT;
+            ip.Delta = v == 0 ? FungeVector.Right : FungeVector.Left;
         });
 
         [Instruction('|')]
@@ -89,7 +89,7 @@ namespace ReFunge.Semantics
                 return;
             }
 
-            ip.Delta = v == 0 ? FungeVector.DOWN : FungeVector.UP;
+            ip.Delta = v == 0 ? FungeVector.Down : FungeVector.Up;
         });
 
         [Instruction('m')]
@@ -102,7 +102,7 @@ namespace ReFunge.Semantics
                 return;
             }
 
-            ip.Delta = v == 0 ? FungeVector.BACKWARDS : FungeVector.FORWARDS;
+            ip.Delta = v == 0 ? FungeVector.Backwards : FungeVector.Forwards;
         });
 
         [Instruction('?')]
@@ -492,7 +492,12 @@ namespace ReFunge.Semantics
 
         [Instruction('t')]
         public static readonly FungeFunc Split = 
-            new FungeAction(ip => ip.Split = true);
+            new FungeAction(ip =>
+            {
+                var newIP = ip.Split(ip.Interpreter.IPID++);
+                ip.Interpreter.AddNewIP(newIP, ip);
+                
+            });
 
         [Instruction('(')]
         public static readonly FungeFunc LoadFingerprint = 

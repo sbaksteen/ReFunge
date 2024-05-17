@@ -7,6 +7,10 @@ namespace ReFunge
     {
         internal List<FungeIP> IPList = [];
 
+        // New IPs should always be inserted before the parent
+        // If the new IP does not have a parent, insert it at the start
+        internal List<(FungeIP ip, FungeIP? parent)> NewIPList = [];
+
         internal int IPID;
 
         internal FungeSpace PrimarySpace;
@@ -35,6 +39,11 @@ namespace ReFunge
             Input = input;
             PrimarySpace = new FungeSpace(dim);
             IPList.Add(new FungeIP(IPID++, PrimarySpace, this));
+        }
+        
+        public void AddNewIP(FungeIP ip, FungeIP? parent = null)
+        {
+            NewIPList.Add((ip, parent));
         }
 
         public void WriteCharacter(char c)
@@ -80,11 +89,9 @@ namespace ReFunge
         public void DoStep()
         {
             if (Quit) { return; }
-            List<FungeIP> toRemove = new();
-            List<int> toSplit = new();
-            for (int i = 0; i < IPList.Count; i++)
+            List<FungeIP> toRemove = [];
+            foreach (var ip in IPList)
             {
-                FungeIP ip = IPList[i];
                 ip.Step();
                 if (ip.RequestQuit)
                 {
@@ -95,17 +102,15 @@ namespace ReFunge
                 {
                     toRemove.Add(ip);
                 }
-                if (ip.Split)
-                {
-                    toSplit.Add(i);
-                }
             }
-            foreach (var i in toSplit)
+            foreach (var (ip, parent) in NewIPList)
             {
-                var ip = IPList[i];
-                IPList.RemoveAt(i);
-                var newIP = ip.SplitIP(IPID++);
-                IPList.Add(newIP);
+                if (parent is null || !IPList.Contains(parent))
+                {
+                    IPList.Insert(0, ip);
+                    continue;
+                }
+                IPList.Insert(IPList.IndexOf(parent), ip);
             }
             foreach (var ip in toRemove)
             {

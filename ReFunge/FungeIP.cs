@@ -16,13 +16,11 @@ namespace ReFunge
         public bool Alive { get; set; } = true;
         public bool RequestQuit { get; set; } = false;
 
-        public bool Split { get; set; } = false;
-
         public bool StringMode { get; set; } = false;
 
         public FungeVector Position = new();
         public FungeVector StorageOffset = new();
-        public FungeVector Delta = FungeVector.RIGHT;
+        public FungeVector Delta = FungeVector.Right;
 
         internal InstructionMap Functions { get; set; } = new(InstructionRegistry.CoreInstructions);
 
@@ -239,7 +237,7 @@ namespace ReFunge
             }
         }
 
-        internal FungeIP SplitIP(int id)
+        internal FungeIP Split(int id)
         {
             FungeIP newIP = new(id, Space, Interpreter)
             {
