@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ReFunge.Data.Values
@@ -30,18 +29,18 @@ namespace ReFunge.Data.Values
 
         public FungeVector() => _values = ImmutableList<int>.Empty;
 
-        public static FungeVector Right = new FungeVector(1);
-        public static FungeVector Left = new FungeVector(-1);
-        public static FungeVector Down = new FungeVector(0, 1);
-        public static FungeVector Up = new FungeVector(0, -1);
-        public static FungeVector Forwards = new FungeVector(0, 0, 1);
-        public static FungeVector Backwards = new FungeVector(0, 0, -1);
+        public static FungeVector Right = new(1);
+        public static FungeVector Left = new(-1);
+        public static FungeVector Down = new(0, 1);
+        public static FungeVector Up = new(0, -1);
+        public static FungeVector Forwards = new(0, 0, 1);
+        public static FungeVector Backwards = new(0, 0, -1);
 
         public static FungeVector Cardinal(int dim, int sign)
         {
-            int[] ints = new int[dim+1];
-            ints[dim] = sign;
-            return new FungeVector(ints);
+            var result = new int[dim+1];
+            result[dim] = sign;
+            return new FungeVector(result);
         }
 
         public int this[int index] => index < _values.Count ? _values[index] : 0;

@@ -12,7 +12,7 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            TResult result = func(ip);
+            var result = func(ip);
             result.PushToStack(ip);
         }
     }
@@ -31,8 +31,8 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T1 arg1 = T1.PopFromStack(ip);
-            TResult result = func(ip, arg1);
+            var arg1 = T1.PopFromStack(ip);
+            var result = func(ip, arg1);
             result.PushToStack(ip);
         }
     }
@@ -42,7 +42,7 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T1 arg1 = T1.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
             action(ip, arg1);
         }
     }
@@ -53,9 +53,9 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
-            TResult result = func(ip, arg1, arg2);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
+            var result = func(ip, arg1, arg2);
             result.PushToStack(ip);
         }
     }
@@ -65,8 +65,8 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
             action(ip, arg1, arg2);
         }
     }
@@ -77,10 +77,10 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T3 arg3 = T3.PopFromStack(ip);
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
-            TResult result = func(ip, arg1, arg2, arg3);
+            var arg3 = T3.PopFromStack(ip);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
+            var result = func(ip, arg1, arg2, arg3);
             result.PushToStack(ip);
         }
     }
@@ -90,9 +90,9 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T3 arg3 = T3.PopFromStack(ip);
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
+            var arg3 = T3.PopFromStack(ip);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
             action(ip, arg1, arg2, arg3);
         }
     }
@@ -103,11 +103,11 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T4 arg4 = T4.PopFromStack(ip);
-            T3 arg3 = T3.PopFromStack(ip);
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
-            TResult result = func(ip, arg1, arg2, arg3, arg4);
+            var arg4 = T4.PopFromStack(ip);
+            var arg3 = T3.PopFromStack(ip);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
+            var result = func(ip, arg1, arg2, arg3, arg4);
             result.PushToStack(ip);
         }
     }
@@ -118,10 +118,10 @@ namespace ReFunge.Semantics
 
         public override void Execute(FungeIP ip)
         {
-            T4 arg4 = T4.PopFromStack(ip);
-            T3 arg3 = T3.PopFromStack(ip);
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
+            var arg4 = T4.PopFromStack(ip);
+            var arg3 = T3.PopFromStack(ip);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
             action(ip, arg1, arg2, arg3, arg4);
         }
     }
@@ -133,12 +133,12 @@ namespace ReFunge.Semantics
 
         public override void Execute(FungeIP ip)
         {
-            T5 arg5 = T5.PopFromStack(ip);
-            T4 arg4 = T4.PopFromStack(ip);
-            T3 arg3 = T3.PopFromStack(ip);
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
-            TResult result = func(ip, arg1, arg2, arg3, arg4, arg5);
+            var arg5 = T5.PopFromStack(ip);
+            var arg4 = T4.PopFromStack(ip);
+            var arg3 = T3.PopFromStack(ip);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
+            var result = func(ip, arg1, arg2, arg3, arg4, arg5);
             result.PushToStack(ip);
         }
     }
@@ -148,11 +148,11 @@ namespace ReFunge.Semantics
     {
         public override void Execute(FungeIP ip)
         {
-            T5 arg5 = T5.PopFromStack(ip);
-            T4 arg4 = T4.PopFromStack(ip);
-            T3 arg3 = T3.PopFromStack(ip);
-            T2 arg2 = T2.PopFromStack(ip);
-            T1 arg1 = T1.PopFromStack(ip);
+            var arg5 = T5.PopFromStack(ip);
+            var arg4 = T4.PopFromStack(ip);
+            var arg3 = T3.PopFromStack(ip);
+            var arg2 = T2.PopFromStack(ip);
+            var arg1 = T1.PopFromStack(ip);
             action(ip, arg1, arg2, arg3, arg4, arg5);
         }
     }

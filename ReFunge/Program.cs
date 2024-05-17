@@ -1,13 +1,8 @@
 ﻿
+using ReFunge;
+
 [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ReFungeTests")]
 
-namespace ReFunge
-{
-    internal class Program
-    {
-        static void Main(string[] args)
-        {
-            Console.WriteLine("Hello, World!");
-        }
-    }
-}
+var funge = new Interpreter();
+funge.Load(args[0]);
+funge.Run();

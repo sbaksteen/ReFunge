@@ -72,12 +72,12 @@ namespace ReFunge
             {
                 return 0;
             }
-            int c = Input.Read();
+            var c = Input.Read();
             if (c == '-')
             {
                 return -ReadInteger();
             }
-            int r = 0;
+            var r = 0;
             while (c >= '0' && c <= '9')
             {
                 r = r * 10 + c - '0';

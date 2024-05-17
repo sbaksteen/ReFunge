@@ -5,46 +5,46 @@ namespace ReFunge.Data
 {
     internal class FungeStack
     {
-        private Stack<int> stack = new Stack<int>();
+        private readonly Stack<int> _stack = new();
 
-        public int Size => stack.Count;
+        public int Size => _stack.Count;
 
         public FungeStack() { }
 
         public FungeStack(Stack<int> stack)
         {
-            this.stack = stack;
+            this._stack = stack;
         }
 
         public int this[int index]  
         { 
             get
             {
-                if (index >= stack.Count)
+                if (index >= _stack.Count)
                 {
                     return 0;
                 }
-                return stack.ElementAt(index);
+                return _stack.ElementAt(index);
             }
         }
 
         public FungeInt Pop() { 
-            if (stack.Count == 0)
+            if (_stack.Count == 0)
             {
                 return 0;
             }
-            return stack.Pop(); 
+            return _stack.Pop(); 
         }
 
         public void Push(FungeInt value) 
         {
-            stack.Push(value);
+            _stack.Push(value);
         }
 
         public FungeVector PopVector(int dim)
         {
-            int[] ints = new int[dim];
-            for (int i = dim - 1; i >= 0; i--)
+            var ints = new int[dim];
+            for (var i = dim - 1; i >= 0; i--)
             {
                 ints[i] = Pop();
             }
@@ -53,7 +53,7 @@ namespace ReFunge.Data
 
         public void PushVector(FungeVector vector, int dim)
         {
-            for (int i = 0; i < dim; i++)
+            for (var i = 0; i < dim; i++)
             {
                 Push(vector[i]);
             }
@@ -61,8 +61,8 @@ namespace ReFunge.Data
 
         public FungeString PopString()
         {
-            string str = "";
-            char c = (char)Pop();
+            var str = "";
+            var c = (char)Pop();
             while (c != 0)
             {
                 str += c;
@@ -75,7 +75,7 @@ namespace ReFunge.Data
         {
             string s = str;
             Push(0);
-            for (int i = s.Length - 1; i >= 0; i--)
+            for (var i = s.Length - 1; i >= 0; i--)
             {
                 Push(s[i]);
             }
@@ -83,36 +83,36 @@ namespace ReFunge.Data
 
         internal void Clear()
         {
-            stack.Clear();
+            _stack.Clear();
         }
 
         internal FungeStack Clone()
         {
-            return new FungeStack(new(stack));
+            return new FungeStack(new(_stack));
         }
     }
 
     internal class FungeStackStack : IEnumerable<FungeStack>
     {
-        private Stack<FungeStack> stack = new Stack<FungeStack>();
+        private readonly Stack<FungeStack> _stack = new();
 
-        public int Size => stack.Count;
+        public int Size => _stack.Count;
 
-        public FungeStack TOSS => stack.Peek();
-        public FungeStack? SOSS => stack.Count > 1 ? stack.ElementAt(1) : null;
+        public FungeStack TOSS => _stack.Peek();
+        public FungeStack? SOSS => _stack.Count > 1 ? _stack.ElementAt(1) : null;
 
-        public FungeStack this[int index] => stack.ElementAt(index);
+        public FungeStack this[int index] => _stack.ElementAt(index);
 
         public FungeStackStack() {
-            stack.Push(new FungeStack());
+            _stack.Push(new FungeStack());
         }
 
         public FungeStackStack Clone()
         {
             FungeStackStack newStack = new();
-            foreach (FungeStack s in stack)
+            foreach (var s in _stack)
             {
-                newStack.stack.Push(s.Clone());
+                newStack._stack.Push(s.Clone());
             }
             return newStack;
         }
@@ -120,50 +120,47 @@ namespace ReFunge.Data
         public void NewStack(int n)
         {
             List<int> newStack = [];
-            for (int i = 0; i < n; i++)
+            for (var i = 0; i < n; i++)
             {
                 newStack.Add(TOSS.Pop());
             }
             if (n < 0)
             {
-                for (int i = 0; i > n; i--)
+                for (var i = 0; i > n; i--)
                 {
                     TOSS.Push(0);
                 }
             }
-            stack.Push(new FungeStack(new Stack<int>(newStack)));
+            _stack.Push(new FungeStack(new Stack<int>(newStack)));
         }
 
         public void RemoveStack(int n)
         {
             List<int> transfer = [];
-            for (int i = 0; i < n; i++)
+            for (var i = 0; i < n; i++)
             {
                 transfer.Add(TOSS.Pop());
             }
-            stack.Pop();
+            _stack.Pop();
             transfer.Reverse();
-            foreach (int i in transfer)
+            foreach (var i in transfer)
             {
                 TOSS.Push(i);
             }
-            if (n < 0)
+            for (var i = 0; i > n; i--)
             {
-                for (int i = 0; i > n; i--)
-                {
-                    TOSS.Pop();
-                }
+                TOSS.Pop();
             }
         }
 
         public IEnumerator<FungeStack> GetEnumerator()
         {
-            return ((IEnumerable<FungeStack>)stack).GetEnumerator();
+            return ((IEnumerable<FungeStack>)_stack).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return ((IEnumerable)stack).GetEnumerator();
+            return ((IEnumerable)_stack).GetEnumerator();
         }
     }
 }

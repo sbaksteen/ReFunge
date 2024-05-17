@@ -156,11 +156,11 @@ namespace ReFunge
 
         internal FungeVector NextPosition()
         {
-            FungeVector newPosition = Position + Delta;
-            bool comment = false;
+            var newPosition = Position + Delta;
+            var comment = false;
             
             // If we're in string mode and we don't start on a space, we don't skip spaces.
-            bool skipSpaces = !StringMode || Space[Position] == ' ';
+            var skipSpaces = !StringMode || Space[Position] == ' ';
 
             while (comment || ((Space[newPosition] == ' ' || Space[newPosition] == ';') && skipSpaces))
             {
@@ -184,33 +184,6 @@ namespace ReFunge
         internal FungeInt Get(FungeVector pos)
         {
             return Space[pos + StorageOffset];
-        }
-
-        internal FungeInt Input()
-        {
-            return Console.Read();
-        }
-
-        internal void Output(FungeInt v)
-        {
-            Console.Write((char)v);
-        }
-
-        internal FungeInt InputDecimal()
-        {
-            int c = Console.Read();
-            int r = 0;
-            while (c >= '0' && c <= '9')
-            {
-                r = r * 10 + c - '0';
-                c = Console.Read();
-            }
-            return r;
-        }
-
-        internal void OutputDecimal(FungeInt v)
-        {
-            Console.Write(v);
         }
 
         internal FungeVector? ReadFileIntoSpace(FungeVector pos, string path, bool binary = false) {
@@ -249,7 +222,7 @@ namespace ReFunge
                 Functions = new InstructionMap(Functions),
                 Interpreter = Interpreter
             };
-            for (int i = 0; i < 26; i++)
+            for (var i = 0; i < 26; i++)
             {
                 newIP.FingerprintStacks[i] = new Stack<FungeFunc>(FingerprintStacks[i]);
             }
