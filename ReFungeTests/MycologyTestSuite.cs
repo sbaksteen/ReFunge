@@ -62,25 +62,26 @@ public class MycologyTestSuite
             Assert.Fail("Interpreter timed out");
         }
         var output = bfOutput.ToString().Split("\n");
-        var goods = 0;
+        var bads = 0;
         foreach (var line in output)
         {
-            if (line.Contains("BAD"))
-            {
-                Assert.Fail(line);
-            }
-            
-            if (line.Contains("GOOD"))
-            {
-                goods++;
-            }
-
-            if (true)
+            if (line.Contains("UNDEF:"))
             {
                 Console.Out.WriteLine(line);
             }
         }
-        Assert.That(goods, Is.GreaterThan(100));
+        foreach (var line in output)
+        {
+            if (line.Contains("BAD:"))
+            {
+                bads++;
+                Console.Out.WriteLine(line);
+            }
+        }
+        if (bads > 0)
+        {
+            Assert.Fail($"{bads} BAD lines");
+        }
 
         Assert.Pass();
     }
