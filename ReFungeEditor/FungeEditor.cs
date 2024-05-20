@@ -142,6 +142,10 @@ public class FungeEditor : Game
                 {
                     _interpreter.DoStep();
                 }
+                if (_currIPNum >= IPList.Count)
+                {
+                    _currIPNum = IPList.Count - 1;
+                }
             }
         }
 

@@ -164,7 +164,7 @@ public class FungeIP
         // If we're in string mode and we don't start on a space, we don't skip spaces.
         var skipSpaces = !StringMode || Space[Position] == ' ';
 
-        while (comment || ((Space[newPosition] == ' ' || Space[newPosition] == ';') && skipSpaces))
+        while (comment || (Space[newPosition] == ' ' && skipSpaces) || (!StringMode && Space[newPosition] == ';'))
         {
             // There are no comments in string mode.
             if (Space[newPosition] == ';' && !StringMode) comment = !comment;
