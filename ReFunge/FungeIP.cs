@@ -28,7 +28,7 @@ public class FungeIP
 
     internal Stack<FungeFunc>[] FingerprintStacks { get; } = new Stack<FungeFunc>[26];
 
-    internal FungeInt ID { get; }
+    public FungeInt ID { get; }
 
     public FungeIP(int id, FungeSpace space, Interpreter interpreter)
     {
