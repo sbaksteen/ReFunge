@@ -2,7 +2,7 @@
 
 namespace ReFunge.Data.Values;
 
-internal readonly record struct FungeString(string Value) : IFungeValue<FungeString>, IEnumerable<char>
+public readonly record struct FungeString(string Value) : IFungeValue<FungeString>, IEnumerable<char>
 {
 
     public int Handprint => this.Aggregate(0, (current, c) => current * 256 + c);

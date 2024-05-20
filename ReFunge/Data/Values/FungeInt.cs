@@ -1,6 +1,6 @@
 ﻿namespace ReFunge.Data.Values;
 
-internal readonly record struct FungeInt(int Value) : IFungeValue<FungeInt>
+public readonly record struct FungeInt(int Value) : IFungeValue<FungeInt>
 {
 
     public static implicit operator FungeInt(int value) => new(value);

@@ -3,7 +3,7 @@ using ReFunge.Data.Values;
 
 namespace ReFunge.Data;
 
-internal class FungeStack
+public class FungeStack
 {
     private readonly Stack<int> _stack = new();
 
@@ -92,7 +92,7 @@ internal class FungeStack
     }
 }
 
-internal class FungeStackStack : IEnumerable<FungeStack>
+public class FungeStackStack : IEnumerable<FungeStack>
 {
     private readonly Stack<FungeStack> _stack = new();
 

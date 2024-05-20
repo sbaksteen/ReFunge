@@ -3,7 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace ReFunge.Data.Values;
 
-internal readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeVector>
+public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeVector>
 {
 
     private readonly ImmutableList<int> _values;

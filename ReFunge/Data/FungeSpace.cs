@@ -4,7 +4,7 @@ using ReFunge.Data.Values;
 
 namespace ReFunge.Data;
 
-internal class FungeSpace
+public class FungeSpace
 {
     private readonly Dictionary<FungeVector, int> _data = [];
     public int Dim;
@@ -28,9 +28,9 @@ internal class FungeSpace
         }
     }
 
-    internal FungeVector MinCoords => new(_minCoords);
+    public FungeVector MinCoords => new(_minCoords);
 
-    internal FungeVector MaxCoords => new(_maxCoords);
+    public FungeVector MaxCoords => new(_maxCoords);
 
     private void UpdateMin(int d)
     {
@@ -321,7 +321,7 @@ internal class FungeSpace
         writer.Close();
     }
 
-    internal FungeInt this[params int[] ints]
+    public FungeInt this[params int[] ints]
     {
         get => this[new FungeVector(ints)];
         set => this[new FungeVector(ints)] = value;

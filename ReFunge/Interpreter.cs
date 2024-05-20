@@ -3,9 +3,9 @@ using ReFunge.Data.Values;
 
 namespace ReFunge;
 
-internal class Interpreter
+public class Interpreter
 {
-    internal List<FungeIP> IPList = [];
+    public List<FungeIP> IPList = [];
 
     // New IPs should always be inserted before the parent
     // If the new IP does not have a parent, insert it at the start
@@ -13,7 +13,7 @@ internal class Interpreter
 
     internal int IPID;
 
-    internal FungeSpace PrimarySpace;
+    public FungeSpace PrimarySpace;
 
     internal int ReturnValue = 0;
 

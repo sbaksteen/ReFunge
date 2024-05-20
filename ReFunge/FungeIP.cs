@@ -6,7 +6,8 @@ using ReFunge.Semantics;
 namespace ReFunge;
 
 using InstructionMap = Dictionary<FungeInt, FungeFunc>;
-internal class FungeIP
+
+public class FungeIP
 {
     public int Dim { get; set; }
     public FungeSpace Space { get; set; }
