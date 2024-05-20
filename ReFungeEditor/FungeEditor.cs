@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Principal;
+using System.Text;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -42,6 +44,9 @@ public class FungeEditor : Game
     private FungeVector _topLeft = new();
     private int _rightDim = 1;
     private int _downDim = 2;
+
+    private bool ImGuiHasKeyboard => ImGui.GetIO().WantCaptureKeyboard;
+    private bool ImGuiHasMouse => ImGui.GetIO().WantCaptureMouse;
     
     public FungeVector RightDirection => FungeVector.Cardinal(int.Abs(_rightDim)-1, int.Sign(_rightDim));
     public FungeVector DownDirection => FungeVector.Cardinal(int.Abs(_downDim)-1, int.Sign(_downDim));
@@ -66,6 +71,18 @@ public class FungeEditor : Game
     private int _currIPNum;
     private int _currStackNum;
 
+    private float _arrowTimer = 0f;
+    private readonly float _arrowTimerMax = 0.5f;
+
+    private enum ArrowTimerState
+    {
+        Inactive,
+        Active,
+        Done
+    }
+    
+    private ArrowTimerState _arrowTimerState = ArrowTimerState.Inactive;
+
     public FungeEditor()
     {
         _graphics = new GraphicsDeviceManager(this);
@@ -77,11 +94,15 @@ public class FungeEditor : Game
     {
         _imGuiRenderer = new ImGuiRenderer(this);
         _imGuiRenderer.RebuildFontAtlas();
+
+        Window.TextInput += OnTextInput;
         
         Window.AllowUserResizing = true;
         _scrollValue = Mouse.GetState().ScrollWheelValue;
         _interpreter = new Interpreter(2, output: _output);
-        _interpreter.PrimarySpace.LoadString(new FungeVector(), ">\"Hello, World!\">:#,_v\n^t                   <");
+        _interpreter.PrimarySpace.LoadString(new FungeVector(), ">\"!dlroW ,olleH\":v\n" +
+                                                                           "              v:,_@\n" +
+                                                                           "              >  ^");
         base.Initialize();
     }
 
@@ -99,6 +120,105 @@ public class FungeEditor : Game
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
 
+        HandleMouseInput();
+        HandleKeyboardInput(gameTime);
+
+        
+
+        if (_running)
+        {
+            if (_slowMode)
+            {
+                _stepCounter++;
+                if (_stepCounter >= _framesPerStep)
+                {
+                    _stepCounter = 0;
+                    _interpreter.DoStep();
+                }
+            }
+            else
+            {
+                for (var i = 0; i < _stepsPerFrame; i++)
+                {
+                    _interpreter.DoStep();
+                }
+            }
+        }
+
+        if (_followingIP)
+        {
+            _topLeft = _followIP.Position - 
+                       RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                       DownDirection *  (Window.ClientBounds.Size.Y/_charSize.Y/2);
+        }
+        
+
+        base.Update(gameTime);
+    }
+
+    private void HandleKeyboardInput(GameTime gameTime)
+    {
+        if (ImGuiHasKeyboard) return;
+        if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.Right) ||
+            Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.Down))
+        {
+            switch (_arrowTimerState)
+            {
+                case ArrowTimerState.Inactive:
+                    DoArrowKeys();
+                    _arrowTimerState = ArrowTimerState.Active;
+                    _arrowTimer = 0f;
+                    break;
+                case ArrowTimerState.Active:
+                    if (_arrowTimer >= _arrowTimerMax)
+                    {
+                        _arrowTimerState = ArrowTimerState.Done;
+                    }
+                    _arrowTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                    break;
+                case ArrowTimerState.Done:
+                    DoArrowKeys();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException("Invalid arrowtimerstate");
+            }
+        }
+        else
+        {
+            _arrowTimerState = ArrowTimerState.Inactive;
+        }
+    }
+
+    private void DoArrowKeys()
+    {
+        if (Keyboard.GetState().IsKeyDown(Keys.Left))
+        {
+            _cursor -= RightDirection;
+        }
+        if (Keyboard.GetState().IsKeyDown(Keys.Right))
+        {
+            _cursor += RightDirection;
+        }
+        if (Keyboard.GetState().IsKeyDown(Keys.Up))
+        {
+            _cursor -= DownDirection;
+        }
+        if (Keyboard.GetState().IsKeyDown(Keys.Down))
+        {
+            _cursor += DownDirection;
+        }
+    }
+
+    private void HandleMouseInput()
+    {
+        if (ImGuiHasMouse) return;
+
+        if (Mouse.GetState().LeftButton == ButtonState.Pressed)
+        {
+            var pos = (Mouse.GetState().Position + _topLeftPoint) / _charSize;
+            _cursor = _topLeft + RightDirection * pos.X + DownDirection * pos.Y;
+        }
+        
         if (Mouse.GetState().RightButton == ButtonState.Pressed)
         {
             if (!_dragging)
@@ -130,43 +250,6 @@ public class FungeEditor : Game
         {
             _dragging = false;
         }
-        
-        if (Mouse.GetState().ScrollWheelValue > _scrollValue)
-        {
-            var delta = _scrollValue - Mouse.GetState().ScrollWheelValue;
-            _scrollValue = Mouse.GetState().ScrollWheelValue;
-            
-        }
-
-        if (_running)
-        {
-            if (_slowMode)
-            {
-                _stepCounter++;
-                if (_stepCounter >= _framesPerStep)
-                {
-                    _stepCounter = 0;
-                    _interpreter.DoStep();
-                }
-            }
-            else
-            {
-                for (var i = 0; i < _stepsPerFrame; i++)
-                {
-                    _interpreter.DoStep();
-                }
-            }
-        }
-
-        if (_followingIP)
-        {
-            _topLeft = _followIP.Position - 
-                       RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
-                       DownDirection *  (Window.ClientBounds.Size.Y/_charSize.Y/2);
-        }
-        
-
-        base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
@@ -264,6 +347,7 @@ public class FungeEditor : Game
 
         if (ImGui.Begin("IP View"))
         {
+            if (IPList.Count == 0) goto EndIPView;
             if (ImGui.InputInt("IP #", ref _currIPNum, 1))
             {
                 if (_currIPNum < 0) _currIPNum = 0;
@@ -271,6 +355,8 @@ public class FungeEditor : Game
             }
 
             var currip = IPList[_currIPNum];
+            
+            ImGui.Text("ID: " + currip.ID);
 
             ImGui.Checkbox("Follow", ref _followingIP);
             if (_followingIP)
@@ -306,12 +392,17 @@ public class FungeEditor : Game
             }
 
             ImGui.EndTable();
+            EndIPView:
             ImGui.End();
         }
 
         if (ImGui.Begin("Output"))
         {
             ImGui.Text("Output:");
+            if (ImGui.Button("Clear"))
+            {
+                _output.GetStringBuilder().Clear();
+            }
             ImGui.BeginChild("OutputScrolling");
             ImGui.TextUnformatted(_output.ToString());
             ImGui.EndChild();
@@ -376,5 +467,28 @@ public class FungeEditor : Game
                 _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
             }
         }
+    }
+
+    protected virtual void OnTextInput(object sender, TextInputEventArgs textInputEventArgs)
+    {
+        if (ImGuiHasKeyboard || _running) return;
+        if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) || Keyboard.GetState().IsKeyDown(Keys.RightControl))
+        {
+            return;
+        }
+        if (textInputEventArgs.Character == '\b')
+        {
+            _cursor -= RightDirection;
+            _interpreter.PrimarySpace[_cursor] = ' ';
+            return;
+        }
+
+        if (textInputEventArgs.Character == 127)
+        {
+            _interpreter.PrimarySpace[_cursor] = ' ';
+            return;
+        }
+        _interpreter.PrimarySpace[_cursor] = textInputEventArgs.Character;
+        _cursor += RightDirection;
     }
 }

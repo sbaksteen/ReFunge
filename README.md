@@ -5,7 +5,6 @@ It can be used as a library or as a standalone program.
 
 Also included in this repository is ReFunge Editor, a simple editor and debugger for Funge-98 programs. 
 It lets you view Funge-Space, IP and stack data, and other useful variables during execution.
-The editing functionality is still in development, but it can be used for debugging purposes.
 
 ## Features
 
@@ -19,6 +18,8 @@ The editing functionality is still in development, but it can be used for debugg
   - Load and debug Befunge-98 programs
   - View Funge-space, IP, stack, output, and other variables
   - Step through the program or execute it at a set speed (up to 100 instructions per frame)
+  - Edit the program, even during execution.
+    - Note: Rewinding the program to its initial state is not yet supported.
 
 Breakpoints and Trefunge support in the Editor are planned for the future.
 
