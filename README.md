@@ -20,8 +20,12 @@ It lets you view Funge-Space, IP and stack data, and other useful variables duri
   - Step through the program or execute it at a set speed (up to 100 instructions per frame)
   - Edit the program, even during execution.
     - Note: Rewinding the program to its initial state is not yet supported.
+  - Rotate the Funge-space to view it from different angles!
+    - Ctrl-U and Ctrl-O rotate around the axis perpendicular to the screen (Befunge or higher)
+    - Ctrl-J and Ctrl-L rotate around the axis going down (Trefunge or higher)
+    - Ctrl-I and Ctrl-K rotate around the axis going right (Trefunge or higher)
 
-Breakpoints and Trefunge support in the Editor are planned for the future.
+Breakpoints are planned for the future.
 
 ![image.png](image.png)
 

@@ -82,6 +82,7 @@ public class FungeEditor : Game
     }
     
     private ArrowTimerState _arrowTimerState = ArrowTimerState.Inactive;
+    private int _dimValue;
 
     public FungeEditor()
     {
@@ -96,6 +97,7 @@ public class FungeEditor : Game
         _imGuiRenderer.RebuildFontAtlas();
 
         Window.TextInput += OnTextInput;
+        Window.KeyDown += OnKeyDown;
         
         Window.AllowUserResizing = true;
         _scrollValue = Mouse.GetState().ScrollWheelValue;
@@ -104,6 +106,143 @@ public class FungeEditor : Game
                                                                            "              v:,_@\n" +
                                                                            "              >  ^");
         base.Initialize();
+    }
+
+    private void OnKeyDown(object sender, InputKeyEventArgs e)
+    {
+        if (ImGuiHasKeyboard) return;
+        if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) || Keyboard.GetState().IsKeyDown(Keys.RightControl))
+        {
+            var d = int.Abs(_downDim);
+            var ds = int.Sign(_downDim);
+            var r = int.Abs(_rightDim);
+            var rs = int.Sign(_rightDim);
+            if (Space.Dim >= 3 && e.Key == Keys.L)
+            {
+                _rightDim = d switch
+                {
+                    1 => r switch
+                    {
+                        2 => 3 * rs * -ds,
+                        3 => 2 * rs * ds,
+                        _ => 3
+                    },
+                    2 => r switch
+                    {
+                        1 => 3 * rs * ds,
+                        3 => 1 * rs * -ds,
+                        _ => 1
+                    },
+                    3 => r switch
+                    {
+                        1 => 2 * rs * -ds,
+                        2 => 1 * rs * ds,
+                        _ => 2
+                    },
+                    _ => _rightDim
+                };
+                _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                           DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
+            }
+
+            if (Space.Dim >= 3 && e.Key == Keys.J)
+            {
+                _rightDim = d switch
+                {
+                    1 => r switch
+                    {
+                        2 => 3 * rs * ds,
+                        3 => 2 * rs * -ds,
+                        _ => 3
+                    },
+                    2 => r switch
+                    {
+                        1 => 3 * rs * -ds,
+                        3 => 1 * rs * ds,
+                        _ => 1
+                    },
+                    3 => r switch
+                    {
+                        1 => 2 * rs * ds,
+                        2 => 1 * rs * -ds,
+                        _ => 2
+                    },
+                    _ => _rightDim
+                };
+                _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                           DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
+            }
+
+            if (Space.Dim >= 3 && e.Key == Keys.I)
+            {
+                _downDim = r switch
+                {
+                    1 => d switch
+                    {
+                        2 => 3 * rs * ds,
+                        3 => 2 * rs * -ds,
+                        _ => 3
+                    },
+                    2 => d switch
+                    {
+                        1 => 3 * rs * -ds,
+                        3 => 1 * rs * ds,
+                        _ => 1
+                    },
+                    3 => d switch
+                    {
+                        1 => 2 * rs * ds,
+                        2 => 1 * rs * -ds,
+                        _ => 2
+                    }
+                };
+                _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                           DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
+            }
+            if (Space.Dim >= 3 && e.Key == Keys.K)
+            {
+                _downDim = r switch
+                {
+                    1 => d switch
+                    {
+                        2 => 3 * rs * -ds,
+                        3 => 2 * rs * ds,
+                        _ => 3
+                    },
+                    2 => d switch
+                    {
+                        1 => 3 * rs * ds,
+                        3 => 1 * rs * -ds,
+                        _ => 1
+                    },
+                    3 => d switch
+                    {
+                        1 => 2 * rs * -ds,
+                        2 => 1 * rs * ds,
+                        _ => 2
+                    }
+                };
+                _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                           DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
+            }
+
+            if (Space.Dim >= 2 && e.Key == Keys.U)
+            {
+                var tmp = _rightDim;
+                _rightDim = _downDim;
+                _downDim = -tmp;
+                _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                           DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
+            }
+            if (Space.Dim >= 2 && e.Key == Keys.O)
+            {
+                var tmp = _rightDim;
+                _rightDim = -_downDim;
+                _downDim = tmp;
+                _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                           DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
+            }
+        }
     }
 
     protected override void LoadContent()
@@ -312,13 +451,22 @@ public class FungeEditor : Game
 
         if (ImGui.Begin("File Menu"))
         {
+            ImGui.InputInt("Dimensions", ref _dimValue);
+            if (_dimValue < 1) _dimValue = 1;
             if (ImGui.Button("Open"))
             {
                 var result = NativeFileDialogSharp.Dialog.FileOpen("bf,b98,f98,u98,t98");
                 if (!result.IsOk) return;
                 _output = new StringWriter();
-                _interpreter = new Interpreter(2, output: _output);
+                _interpreter = new Interpreter(_dimValue, output: _output);
                 _interpreter.Load(result.Path);
+            }
+
+            if (ImGui.Button("New"))
+            {
+                _output = new StringWriter();
+                _interpreter = new Interpreter(_dimValue, output: _output);
+                _interpreter.PrimarySpace[0] = '.';
             }
 
             ImGui.End();
@@ -352,11 +500,9 @@ public class FungeEditor : Game
         if (ImGui.Begin("IP View"))
         {
             if (IPList.Count == 0) goto EndIPView;
-            if (ImGui.InputInt("IP #", ref _currIPNum, 1))
-            {
-                if (_currIPNum < 0) _currIPNum = 0;
-                if (_currIPNum >= IPList.Count) _currIPNum = IPList.Count - 1;
-            }
+            ImGui.InputInt("IP #", ref _currIPNum, 1);
+            if (_currIPNum < 0) _currIPNum = 0;
+            if (_currIPNum >= IPList.Count) _currIPNum = IPList.Count - 1;
 
             var currip = IPList[_currIPNum];
             
@@ -422,6 +568,7 @@ public class FungeEditor : Game
         
         for (var y = 0; y < end.Y; y++)
         {
+            if (_interpreter.PrimarySpace.Dim < 2 && _topLeft[1] + y != 0) continue;
             for (var x = 0; x < end.X; x++)
             {
                 var pos = _topLeft + rightDirection * x + downDirection * y;
@@ -446,26 +593,24 @@ public class FungeEditor : Game
         var end = Window.ClientBounds.Size / _charSize;
         foreach (var ip in IPList)
         {
-            var right = ip.Position[int.Abs(_rightDim)-1] - _topLeft[int.Abs(_rightDim)-1];
-            var down = ip.Position[int.Abs(_downDim)-1] - _topLeft[int.Abs(_downDim)-1];
-            if (right >= 0 && right < end.X && down >= 0 && down < end.Y)
+            var right = int.Sign(_rightDim) * (ip.Position[int.Abs(_rightDim)-1] - _topLeft[int.Abs(_rightDim)-1]);
+            var down = int.Sign(_downDim) * (ip.Position[int.Abs(_downDim)-1] - _topLeft[int.Abs(_downDim)-1]);
+            if (right < 0 || right > end.X || down < 0 || down > end.Y) continue;
+            if (ip.Position == _cursor)
             {
-                if (ip.Position == _cursor)
-                {
-                    cursorDrawn = true;
-                    _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), (1-_cursorBlink) * _ipColor);
-                    _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
-                    continue;
-                }
-
-                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _ipColor);
+                cursorDrawn = true;
+                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), (1-_cursorBlink) * _ipColor);
+                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
+                continue;
             }
+
+            _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _ipColor);
         }
 
         if (!cursorDrawn)
         {
-            var right = _cursor[int.Abs(_rightDim)-1] - _topLeft[int.Abs(_rightDim)-1];
-            var down = _cursor[int.Abs(_downDim)-1] - _topLeft[int.Abs(_downDim)-1];
+            var right = int.Sign(_rightDim) * (_cursor[int.Abs(_rightDim)-1] - _topLeft[int.Abs(_rightDim)-1]);
+            var down = int.Sign(_downDim) * (_cursor[int.Abs(_downDim)-1] - _topLeft[int.Abs(_downDim)-1]);
             if (right >= 0 && right < end.X && down >= 0 && down < end.Y)
             {
                 _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
