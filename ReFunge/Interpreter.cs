@@ -19,7 +19,7 @@ public class Interpreter
 
     internal bool Quit;
 
-    internal long Tick;
+    public long Tick;
         
     internal TextWriter Output;
         

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
+using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -25,15 +27,44 @@ public class FungeEditor : Game
 
     private Point _charSize;
 
+    private double _scale = 0.2;
+
     private Point _topLeftPoint = Point.Zero;
+    
+    private Color _backgroundColor = Color.Black;
+    private Color _textColor = Color.White;
+    private Color _cursorColor = Color.Gray;
+    private Color _ipColor = Color.Blue;
+    
+    private int _scrollValue;
     
     private FungeVector _cursor = new();
     private FungeVector _topLeft = new();
     private int _rightDim = 1;
     private int _downDim = 2;
+    
+    public FungeVector RightDirection => FungeVector.Cardinal(int.Abs(_rightDim)-1, int.Sign(_rightDim));
+    public FungeVector DownDirection => FungeVector.Cardinal(int.Abs(_downDim)-1, int.Sign(_downDim));
+    
+    private bool _running = false;
+    private int _stepsPerFrame = 1;
+    private int _framesPerStep = 1;
+    private int _stepCounter = 0;
+    private bool _slowMode = false;
 
     private bool _dragging = false;
     private Point _dragPos;
+
+    private bool _followingIP = false;
+    private FungeIP _followIP;
+
+    private float _cursorBlink = 0f;
+    
+    private StringWriter _output = new();
+    
+    private ImGuiRenderer _imGuiRenderer;
+    private int _currIPNum;
+    private int _currStackNum;
 
     public FungeEditor()
     {
@@ -44,9 +75,12 @@ public class FungeEditor : Game
 
     protected override void Initialize()
     {
-        // TODO: Add your initialization logic here
+        _imGuiRenderer = new ImGuiRenderer(this);
+        _imGuiRenderer.RebuildFontAtlas();
+        
         Window.AllowUserResizing = true;
-        _interpreter = new Interpreter();
+        _scrollValue = Mouse.GetState().ScrollWheelValue;
+        _interpreter = new Interpreter(2, output: _output);
         _interpreter.PrimarySpace.LoadString(new FungeVector(), ">\"Hello, World!\">:#,_v\n^t                   <");
         base.Initialize();
     }
@@ -55,7 +89,6 @@ public class FungeEditor : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        // TODO: use this.Content to load your game content here
         _font = Content.Load<SpriteFont>("JetBrainsMonoNL");
         _charSize = _font.MeasureString("M").ToPoint();
     }
@@ -65,12 +98,6 @@ public class FungeEditor : Game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
             Keyboard.GetState().IsKeyDown(Keys.Escape))
             Exit();
-
-        // TODO: Add your update logic here
-        if (Keyboard.GetState().IsKeyDown(Keys.F))
-        {
-            _interpreter.DoStep();
-        }
 
         if (Mouse.GetState().RightButton == ButtonState.Pressed)
         {
@@ -103,33 +130,198 @@ public class FungeEditor : Game
         {
             _dragging = false;
         }
+        
+        if (Mouse.GetState().ScrollWheelValue > _scrollValue)
+        {
+            var delta = _scrollValue - Mouse.GetState().ScrollWheelValue;
+            _scrollValue = Mouse.GetState().ScrollWheelValue;
+            
+        }
+
+        if (_running)
+        {
+            if (_slowMode)
+            {
+                _stepCounter++;
+                if (_stepCounter >= _framesPerStep)
+                {
+                    _stepCounter = 0;
+                    _interpreter.DoStep();
+                }
+            }
+            else
+            {
+                for (var i = 0; i < _stepsPerFrame; i++)
+                {
+                    _interpreter.DoStep();
+                }
+            }
+        }
+
+        if (_followingIP)
+        {
+            _topLeft = _followIP.Position - 
+                       RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                       DownDirection *  (Window.ClientBounds.Size.Y/_charSize.Y/2);
+        }
+        
 
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(_backgroundColor);
+
+        _cursorBlink = float.Pow(float.Abs((float)double.Sin(gameTime.TotalGameTime.TotalSeconds * 1.5)), 2f);
 
         Texture2D ipTexture = new Texture2D(GraphicsDevice, 1, 1);
-        ipTexture.SetData(new[] {Color.DarkBlue});
+        ipTexture.SetData(new[] {Color.White});
 
         _spriteBatch.Begin();
 
         DrawIPs(ipTexture);
         
         DrawSpace();
-
-        _spriteBatch.DrawString(_font, $"FPS: {TimeSpan.FromSeconds(1)/gameTime.ElapsedGameTime}\nAmount of IPs: {IPList.Count}", new Vector2(600, 600), Color.White);
+        
         _spriteBatch.End();
-        // TODO: Add your drawing code here
+        
+        // Call BeforeLayout first to set things up
+        _imGuiRenderer.BeforeLayout(gameTime);
+
+        // Draw our UI
+        ImGuiLayout(gameTime);
+
+        // Call AfterLayout now to finish up and draw all the things
+        _imGuiRenderer.AfterLayout();
 
         base.Draw(gameTime);
     }
 
+    private void ImGuiLayout(GameTime gameTime)
+    {
+        if (ImGui.Begin("Main Controls"))
+        {
+            if (ImGui.Button("Step"))
+            {
+                _interpreter.DoStep();
+            }
+
+            if (ImGui.Button("Run"))
+            {
+                _running = true;
+            }
+
+            if (ImGui.Button("Stop"))
+            {
+                _running = false;
+            }
+
+            ImGui.SliderInt("Steps per Frame", ref _stepsPerFrame, 1, 100);
+            ImGui.SliderInt("Frames per Step", ref _framesPerStep, 1, 100);
+            ImGui.Checkbox("Slow Mode", ref _slowMode);
+            ImGui.End();
+        }
+
+        if (ImGui.Begin("File Menu"))
+        {
+            if (ImGui.Button("Open"))
+            {
+                var result = NativeFileDialogSharp.Dialog.FileOpen("bf,b98,f98,u98,t98");
+                if (!result.IsOk) return;
+                _output = new StringWriter();
+                _interpreter = new Interpreter(2, output: _output);
+                _interpreter.Load(result.Path);
+            }
+
+            ImGui.End();
+        }
+
+        if (ImGui.Begin("Interpreter View"))
+        {
+            ImGui.Text("Tick: " + _interpreter.Tick);
+            ImGui.Text($"Space Bounds: {Space.MinCoords}, {Space.MaxCoords}");
+            ImGui.Text("IPs: " + IPList.Count);
+            ImGui.Text("IP list:");
+            ImGui.BeginChild("Scrolling");
+            foreach (var ip in IPList)
+            {
+                if (ImGui.Button("Find##" + IPList.IndexOf(ip)))
+                {
+                    _topLeft = ip.Position -
+                               RightDirection * (Window.ClientBounds.Size.X / _charSize.X / 2) -
+                               DownDirection * (Window.ClientBounds.Size.Y / _charSize.Y / 2);
+                    _currIPNum = IPList.IndexOf(ip);
+                }
+
+                ImGui.SameLine();
+                ImGui.Text(ip.ToString());
+            }
+
+            ImGui.EndChild();
+            ImGui.End();
+        }
+
+        if (ImGui.Begin("IP View"))
+        {
+            if (ImGui.InputInt("IP #", ref _currIPNum, 1))
+            {
+                if (_currIPNum < 0) _currIPNum = 0;
+                if (_currIPNum >= IPList.Count) _currIPNum = IPList.Count - 1;
+            }
+
+            var currip = IPList[_currIPNum];
+
+            ImGui.Checkbox("Follow", ref _followingIP);
+            if (_followingIP)
+            {
+                _followIP = currip;
+            }
+
+            ImGui.Text("Position: " + currip.Position);
+            ImGui.Text("Delta: " + currip.Delta);
+            if (currip.StringMode)
+            {
+                ImGui.Text("String Mode");
+            }
+
+            ImGui.Text("Stack ");
+            ImGui.SameLine();
+            ImGui.InputInt(" of " + currip.StackStack.Size, ref _currStackNum);
+            if (_currStackNum < 0) _currStackNum = 0;
+            if (_currStackNum >= currip.StackStack.Size) _currStackNum = currip.StackStack.Size - 1;
+
+            ImGui.BeginTable("StackTable", 2);
+            ImGui.TableSetupColumn("Int");
+            ImGui.TableSetupColumn("Char");
+            ImGui.TableHeadersRow();
+            var stack = IPList[_currIPNum].StackStack[_currStackNum];
+            for (var i = 0; i < stack.Size; i++)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableSetColumnIndex(0);
+                ImGui.Text(stack[i].ToString());
+                ImGui.TableSetColumnIndex(1);
+                ImGui.Text(((char)stack[i]).ToString());
+            }
+
+            ImGui.EndTable();
+            ImGui.End();
+        }
+
+        if (ImGui.Begin("Output"))
+        {
+            ImGui.Text("Output:");
+            ImGui.BeginChild("OutputScrolling");
+            ImGui.TextUnformatted(_output.ToString());
+            ImGui.EndChild();
+            ImGui.End();
+        }
+    }
+
     private void DrawSpace()
     {
-        var end = Window.ClientBounds.Size / _charSize;
+        var end = Window.ClientBounds.Size / _charSize + new Point(2, 2);
         var rightDirection = FungeVector.Cardinal(int.Abs(_rightDim)-1, int.Sign(_rightDim));
         var downDirection = FungeVector.Cardinal(int.Abs(_downDim)-1, int.Sign(_downDim));
         
@@ -140,13 +332,22 @@ public class FungeEditor : Game
                 var pos = _topLeft + rightDirection * x + downDirection * y;
                 var c = (char)Space[pos];
                 if (c == ' ') continue;
-                _spriteBatch.DrawString(_font, c.ToString(), (new Point(x, y) * _charSize - _topLeftPoint).ToVector2(), Color.White);
+                try
+                {
+                    _spriteBatch.DrawString(_font, c.ToString(),
+                        (new Point(x, y) * _charSize - _topLeftPoint).ToVector2(), _textColor);
+                }
+                catch (ArgumentException e)
+                {
+                    _spriteBatch.DrawString(_font, "?", (new Point(x, y) * _charSize - _topLeftPoint).ToVector2(), Color.Red);
+                }
             }
         }
     }
 
     private void DrawIPs(Texture2D ipTexture)
     {
+        bool cursorDrawn = false;
         var end = Window.ClientBounds.Size / _charSize;
         foreach (var ip in IPList)
         {
@@ -154,7 +355,25 @@ public class FungeEditor : Game
             var down = ip.Position[int.Abs(_downDim)-1] - _topLeft[int.Abs(_downDim)-1];
             if (right >= 0 && right < end.X && down >= 0 && down < end.Y)
             {
-                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), Color.White);
+                if (ip.Position == _cursor)
+                {
+                    cursorDrawn = true;
+                    _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), (1-_cursorBlink) * _ipColor);
+                    _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
+                    continue;
+                }
+
+                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _ipColor);
+            }
+        }
+
+        if (!cursorDrawn)
+        {
+            var right = _cursor[int.Abs(_rightDim)-1] - _topLeft[int.Abs(_rightDim)-1];
+            var down = _cursor[int.Abs(_downDim)-1] - _topLeft[int.Abs(_downDim)-1];
+            if (right >= 0 && right < end.X && down >= 0 && down < end.Y)
+            {
+                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
             }
         }
     }
