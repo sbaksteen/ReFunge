@@ -23,6 +23,8 @@ It lets you view Funge-Space, IP and stack data, and other useful variables duri
 
 Breakpoints and Trefunge support in the Editor are planned for the future.
 
+![image.png](image.png)
+
 ## Usage
 
 Will be added soon.
