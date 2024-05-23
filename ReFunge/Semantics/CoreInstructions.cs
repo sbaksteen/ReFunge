@@ -32,52 +32,119 @@ internal static class CoreInstructions
 
     [Instruction('>')]
     public static readonly FungeFunc GoRight = 
-        new FungeAction(ip => ip.Delta = FungeVector.Right);
+        new FungeAction(ip =>
+        {
+            if (ip.HoverMode)
+            {
+                ip.Delta += FungeVector.Right;
+            }
+            else
+            {
+                ip.Delta = FungeVector.Right;
+            }
+        });
     [Instruction('<')]
     public static readonly FungeFunc GoLeft = 
-        new FungeAction(ip => ip.Delta = FungeVector.Left);
+        new FungeAction(ip =>
+        {
+            if (ip.HoverMode)
+            {
+                ip.Delta += FungeVector.Left;
+            }
+            else
+            {
+                ip.Delta = FungeVector.Left;
+            }
+        });
     [Instruction('^')]
     public static readonly FungeFunc GoUp = 
         new FungeAction(ip =>
         {
             if (ip.Dim > 1)
-                ip.Delta = FungeVector.Up;
+            {
+                if (ip.HoverMode)
+                {
+                    ip.Delta += FungeVector.Up;
+                }
+                else
+                {
+                    ip.Delta = FungeVector.Up;
+                }
+            }
             else
+            {
                 ip.Reflect();
+            }
         });
     [Instruction('v')]
     public static readonly FungeFunc GoDown = 
         new FungeAction(ip =>
         {
             if (ip.Dim > 1)
-                ip.Delta = FungeVector.Down;
+            {
+                if (ip.HoverMode)
+                {
+                    ip.Delta += FungeVector.Down;
+                }
+                else
+                {
+                    ip.Delta = FungeVector.Down;
+                }
+            }
             else
+            {
                 ip.Reflect();
+            }
         });
     [Instruction('h')]
     public static readonly FungeFunc GoForwards = 
         new FungeAction(ip =>
         {
             if (ip.Dim > 2)
-                ip.Delta = FungeVector.Forwards;
+            {
+                if (ip.HoverMode)
+                {
+                    ip.Delta += FungeVector.Forwards;
+                }
+                else
+                {
+                    ip.Delta = FungeVector.Forwards;
+                }
+            }
             else
+            {
                 ip.Reflect();
+            }
         });
     [Instruction('l')]
     public static readonly FungeFunc GoBackwards = 
         new FungeAction(ip =>
         {
             if (ip.Dim > 2)
-                ip.Delta = FungeVector.Backwards;
+            {
+                if (ip.HoverMode)
+                {
+                    ip.Delta += FungeVector.Backwards;
+                }
+                else
+                {
+                    ip.Delta = FungeVector.Backwards;
+                }
+            }
             else
+            {
                 ip.Reflect();
+            }
         });
 
     [Instruction('_')]
     public static readonly FungeFunc DecideHorizontal = 
         new FungeAction<FungeInt>((ip, v) =>
         {
-            ip.Delta = v == 0 ? FungeVector.Right : FungeVector.Left;
+            if (v == 0)
+                GoRight.Execute(ip);
+            else
+                GoLeft.Execute(ip);
         });
 
     [Instruction('|')]
@@ -90,7 +157,10 @@ internal static class CoreInstructions
                 return;
             }
 
-            ip.Delta = v == 0 ? FungeVector.Down : FungeVector.Up;
+            if (v == 0) 
+                GoDown.Execute(ip);
+            else
+                GoUp.Execute(ip);
         });
 
     [Instruction('m')]
@@ -103,7 +173,10 @@ internal static class CoreInstructions
                 return;
             }
 
-            ip.Delta = v == 0 ? FungeVector.Backwards : FungeVector.Forwards;
+            if (v == 0)
+                GoBackwards.Execute(ip);
+            else
+                GoForwards.Execute(ip);
         });
 
     [Instruction('?')]
@@ -121,6 +194,7 @@ internal static class CoreInstructions
     public static readonly FungeFunc TurnRight = 
         new FungeAction(ip =>
         {
+            if (ip.SwitchMode) ip.Space[ip.Position] = '[';
             switch (ip.Dim)
             {
                 case < 2:
@@ -145,6 +219,7 @@ internal static class CoreInstructions
     public static readonly FungeFunc TurnLeft = 
         new FungeAction(ip =>
         {
+            if (ip.SwitchMode) ip.Space[ip.Position] = ']';
             switch (ip.Dim)
             {
                 case < 2:
@@ -398,7 +473,11 @@ internal static class CoreInstructions
             // 0x10: 0 to indicate that input is buffered
             tempStack.Push(0x07);
 
-            if (n > 0)
+            if (n > tempStack.Size)
+            {
+                ip.PushToStack(ip.StackStack.TOSS[n - tempStack.Size - 1]);
+            }
+            else if (n > 0)
             {
                 ip.PushToStack(tempStack[n-1]);
             }
@@ -456,8 +535,29 @@ internal static class CoreInstructions
     public static readonly FungeFunc BeginBlock = 
         new FungeAction<FungeInt>((ip, n) =>
         {
-            ip.StackStack.NewStack(n);
-            ip.StackStack.SOSS.PushVector(ip.StorageOffset, ip.Dim);
+            if (ip.SwitchMode) ip.Space[ip.Position] = '}';
+            ip.StackStack.NewStack();
+            if (n > 0)
+            {
+                int[] newStack = new int[n];
+                for (var i = 0; i < n; i++)
+                {
+                    newStack[i] = ip.PopFromSOSS();
+                }
+                for (var i = n - 1; i >= 0; i--)
+                {
+                    ip.PushToStack(newStack[i]);
+                }
+            }
+
+            if (n < 0)
+            {
+                for (var i = 0; i > n; i--)
+                {
+                    ip.PushToSOSS(0);
+                }
+            }
+            ip.PushVectorToSOSS(ip.StorageOffset);
             ip.StorageOffset = ip.Position + ip.Delta;
         });
 
@@ -465,13 +565,30 @@ internal static class CoreInstructions
     public static readonly FungeFunc EndBlock = 
         new FungeAction<FungeInt>((ip, n) =>
         {
+            if (ip.SwitchMode) ip.Space[ip.Position] = '{';
             if (ip.StackStack.Size == 1)
             {
                 ip.Reflect();
                 return;
             }
-            ip.StorageOffset = ip.StackStack.SOSS!.PopVector(ip.Dim);
-            ip.StackStack.RemoveStack(n);
+            ip.StorageOffset = ip.PopVectorFromSOSS();
+            if (n > 0)
+            {
+                int[] transfer = new int[n];
+                for (var i = 0; i < n; i++)
+                {
+                    transfer[i] = ip.PopFromStack();
+                }
+                for (var i = n - 1; i >= 0; i--)
+                {
+                    ip.PushToSOSS(transfer[i]);
+                }
+            }
+            for (var i = 0; i > n; i--)
+            {
+                ip.PopFromSOSS();
+            }
+            ip.StackStack.RemoveStack();
         });
 
     [Instruction('u')]
@@ -485,11 +602,11 @@ internal static class CoreInstructions
             }
             for (var i = 0; i < count; i++)
             {
-                ip.StackStack.TOSS.Push(ip.StackStack.SOSS!.Pop());
+                ip.PushToStack(ip.PopFromSOSS());
             }
             for (var i = 0; i > count; i--)
             {
-                ip.StackStack.SOSS!.Push(ip.StackStack.TOSS.Pop());
+                ip.PushToSOSS(ip.PopFromStack());
             }
         });
 
@@ -509,6 +626,7 @@ internal static class CoreInstructions
     public static readonly FungeFunc LoadFingerprint = 
         new FungeAction<FungeInt>((ip, n) =>
         {
+            if (ip.SwitchMode) ip.Space[ip.Position] = ')';
             var code = 0;
             for (var i = 0; i < n; i++)
             {
@@ -529,6 +647,7 @@ internal static class CoreInstructions
     public static readonly FungeFunc UnloadFingerprint = 
         new FungeAction<FungeInt>((ip, n) =>
         {
+            if (ip.SwitchMode) ip.Space[ip.Position] = '(';
             var code = 0;
             for (var i = 0; i < n; i++)
             {

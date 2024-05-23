@@ -61,5 +61,6 @@ internal class InstructionRegistry
         RegisterFingerprint("NULL", typeof(NULL));
         RegisterFingerprint("ROMA", typeof(ROMA));
         RegisterFingerprint("MODU", typeof(MODU));
+        RegisterFingerprint("MODE", typeof(MODE));
     }
 }

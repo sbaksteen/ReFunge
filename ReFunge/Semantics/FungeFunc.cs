@@ -2,7 +2,7 @@
 
 namespace ReFunge.Semantics;
 
-internal abstract class FungeFunc
+public abstract class FungeFunc
 {
     public abstract void Execute(FungeIP ip);
 }

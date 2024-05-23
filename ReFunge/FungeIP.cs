@@ -7,6 +7,17 @@ namespace ReFunge;
 
 using InstructionMap = Dictionary<FungeInt, FungeFunc>;
 
+[Flags]
+public enum IPModes
+{
+    None = 0,
+    StringMode = 1,
+    HoverMode = 2,
+    InvertMode = 4,
+    QueueMode = 8,
+    SwitchMode = 16
+}
+
 public class FungeIP
 {
     public int Dim { get; set; }
@@ -17,8 +28,89 @@ public class FungeIP
 
     public bool Alive { get; set; } = true;
     public bool RequestQuit { get; set; } = false;
+    
+    public IPModes Modes { get; set; } = IPModes.None;
 
-    public bool StringMode { get; set; } = false;
+    public bool StringMode
+    {
+        get => (Modes & IPModes.StringMode) != 0;
+        set
+        {
+            if (value)
+            {
+                Modes |= IPModes.StringMode;
+            }
+            else
+            {
+                Modes &= ~IPModes.StringMode;
+            }
+        }
+    }
+    
+    public bool HoverMode
+    {
+        get => (Modes & IPModes.HoverMode) != 0;
+        set
+        {
+            if (value)
+            {
+                Modes |= IPModes.HoverMode;
+            }
+            else
+            {
+                Modes &= ~IPModes.HoverMode;
+            }
+        }
+    }
+    
+    public bool InvertMode
+    {
+        get => (Modes & IPModes.InvertMode) != 0;
+        set
+        {
+            if (value)
+            {
+                Modes |= IPModes.InvertMode;
+            }
+            else
+            {
+                Modes &= ~IPModes.InvertMode;
+            }
+        }
+    }
+    
+    public bool QueueMode
+    {
+        get => (Modes & IPModes.QueueMode) != 0;
+        set
+        {
+            if (value)
+            {
+                Modes |= IPModes.QueueMode;
+            }
+            else
+            {
+                Modes &= ~IPModes.QueueMode;
+            }
+        }
+    }
+    
+    public bool SwitchMode
+    {
+        get => (Modes & IPModes.SwitchMode) != 0;
+        set
+        {
+            if (value)
+            {
+                Modes |= IPModes.SwitchMode;
+            }
+            else
+            {
+                Modes &= ~IPModes.SwitchMode;
+            }
+        }
+    }
+
 
     public FungeVector Position = new();
     public FungeVector StorageOffset = new();
@@ -113,32 +205,62 @@ public class FungeIP
 
     public void PushToStack(FungeInt value)
     {
-        StackStack.TOSS.Push(value);
+        StackStack.TOSS.Push(value, InvertMode);
     }
 
     public FungeInt PopFromStack()
     {
-        return StackStack.TOSS.Pop();
+        return StackStack.TOSS.Pop(QueueMode);
+    }
+    
+    public void PushToSOSS(FungeInt value)
+    {
+        StackStack.SOSS!.Push(value, InvertMode);
+    }
+    
+    public FungeInt PopFromSOSS()
+    {
+        return StackStack.SOSS!.Pop(QueueMode);
     }
 
     public void PushVectorToStack(FungeVector vector)
     {
-        StackStack.TOSS.PushVector(vector, Dim);
+        StackStack.TOSS.PushVector(vector, Dim, InvertMode);
     }
 
     public FungeVector PopVectorFromStack()
     {
-        return StackStack.TOSS.PopVector(Dim);
+        return StackStack.TOSS.PopVector(Dim, QueueMode);
+    }
+    
+    public void PushVectorToSOSS(FungeVector vector)
+    {
+        StackStack.SOSS!.PushVector(vector, Dim, InvertMode);
+    }
+    
+    public FungeVector PopVectorFromSOSS()
+    {
+        return StackStack.SOSS!.PopVector(Dim, QueueMode);
     }
 
     public void PushStringToStack(FungeString str)
     {
-        StackStack.TOSS.PushString(str);
+        StackStack.TOSS.PushString(str, InvertMode);
     }
 
     public FungeString PopStringFromStack()
     {
-        return StackStack.TOSS.PopString();
+        return StackStack.TOSS.PopString(QueueMode);
+    }
+    
+    public void PushStringToSOSS(FungeString str)
+    {
+        StackStack.SOSS!.PushString(str, InvertMode);
+    }
+    
+    public FungeString PopStringFromSOSS()
+    {
+        return StackStack.SOSS!.PopString(QueueMode);
     }
 
     internal void Reflect()

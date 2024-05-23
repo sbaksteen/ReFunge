@@ -1,83 +1,82 @@
 ﻿using System.Collections;
+using Nito.Collections;
 using ReFunge.Data.Values;
 
 namespace ReFunge.Data;
 
 public class FungeStack
 {
-    private readonly Stack<int> _stack = new();
+    private readonly Deque<int> _stack = new();
 
     public int Size => _stack.Count;
 
     public FungeStack() { }
 
-    public FungeStack(Stack<int> stack)
+    public FungeStack(Deque<int> stack)
     {
-        this._stack = stack;
+        _stack = stack;
     }
 
-    public int this[int index]  
-    { 
-        get
-        {
-            if (index >= _stack.Count)
-            {
-                return 0;
-            }
-            return _stack.ElementAt(index);
-        }
-    }
+    public int this[int index] => index >= _stack.Count ? 0 : _stack.ElementAt(index);
 
-    public FungeInt Pop() { 
+    public FungeInt Pop(bool back = false)
+    {
         if (_stack.Count == 0)
         {
             return 0;
         }
-        return _stack.Pop(); 
+        return back ? _stack.RemoveFromBack() : _stack.RemoveFromFront();
     }
 
-    public void Push(FungeInt value) 
+    public void Push(FungeInt value, bool back = false)
     {
-        _stack.Push(value);
+        if (back)
+        {
+            _stack.AddToBack(value);
+        }
+        else
+        {
+            _stack.AddToFront(value);
+        }
     }
 
-    public FungeVector PopVector(int dim)
+    public FungeVector PopVector(int dim, bool back = false)
     {
         var ints = new int[dim];
         for (var i = dim - 1; i >= 0; i--)
         {
-            ints[i] = Pop();
+            ints[i] = Pop(back);
         }
         return new FungeVector(ints);
     }
 
-    public void PushVector(FungeVector vector, int dim)
+    public void PushVector(FungeVector vector, int dim, bool back = false)
     {
         for (var i = 0; i < dim; i++)
         {
-            Push(vector[i]);
+            Push(vector[i], back);
         }
     }
 
-    public FungeString PopString()
+    public FungeString PopString(bool back = false)
     {
         var str = "";
-        var c = (char)Pop();
+        var c = (char)Pop(back);
         while (c != 0)
         {
             str += c;
-            c = (char)Pop();
+            c = (char)Pop(back);
         }
         return str;
     }
 
-    public void PushString(FungeString str)
+    public void PushString(FungeString str, bool back = false)
     {
         string s = str;
-        Push(0);
+        Push(0, back);
         for (var i = s.Length - 1; i >= 0; i--)
         {
-            Push(s[i]);
+            Push(s[i], back);
         }
     }
 
@@ -88,7 +87,7 @@ public class FungeStack
 
     internal FungeStack Clone()
     {
-        return new FungeStack(new(_stack));
+        return new FungeStack(new Deque<int>(_stack));
     }
 }
 
@@ -110,6 +109,7 @@ public class FungeStackStack : IEnumerable<FungeStack>
     public FungeStackStack Clone()
     {
         FungeStackStack newStack = new();
+        newStack._stack.Clear();
         foreach (var s in _stack)
         {
             newStack._stack.Push(s.Clone());
@@ -122,39 +122,16 @@ public class FungeStackStack : IEnumerable<FungeStack>
         _stack.Push(stack);
     }
 
-    public void NewStack(int n)
+    public void NewStack()
     {
-        List<int> newStack = [];
-        for (var i = 0; i < n; i++)
-        {
-            newStack.Insert(0, TOSS.Pop());
-        }
-        if (n < 0)
-        {
-            for (var i = 0; i > n; i--)
-            {
-                TOSS.Push(0);
-            }
-        }
-        _stack.Push(new FungeStack(new Stack<int>(newStack)));
+        _stack.Push(new FungeStack());
     }
 
-    public void RemoveStack(int n)
+    public void RemoveStack()
     {
-        List<int> transfer = [];
-        for (var i = 0; i < n; i++)
+        if (_stack.Count > 1)
         {
-            transfer.Add(TOSS.Pop());
-        }
-        _stack.Pop();
-        transfer.Reverse();
-        foreach (var i in transfer)
-        {
-            TOSS.Push(i);
-        }
-        for (var i = 0; i > n; i--)
-        {
-            TOSS.Pop();
+            _stack.Pop();
         }
     }
 

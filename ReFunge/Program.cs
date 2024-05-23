@@ -18,15 +18,11 @@ internal class Program
         [Option('t', "time", HelpText = "Show the time taken to run the program.", Default = false)]
         public bool ShowTime { get; set; }
     }
-    public class InfoOptions
-    {
-        
-    }
     
     public static void Main(string[] args)
     {
-        Parser.Default.ParseArguments<RunOptions, InfoOptions>(args)
-            .WithParsed<RunOptions>(Run);
+        Parser.Default.ParseArguments<RunOptions>(args)
+            .WithParsed(Run);
     }
 
     private static void Run(RunOptions opts)
