@@ -118,7 +118,7 @@ public class FungeIP
 
     internal InstructionMap Functions { get; set; } = new(InstructionRegistry.CoreInstructions);
 
-    internal Stack<FungeFunc>[] FingerprintStacks { get; } = new Stack<FungeFunc>[26];
+    public Stack<FungeFunc>[] FingerprintStacks { get; } = new Stack<FungeFunc>[26];
 
     public FungeInt ID { get; }
 

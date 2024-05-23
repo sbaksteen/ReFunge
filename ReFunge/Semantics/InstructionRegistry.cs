@@ -6,13 +6,21 @@ using System.Reflection;
 namespace ReFunge.Semantics;
 
 using InstructionMap = Dictionary<FungeInt, FungeFunc>;
-internal class InstructionRegistry
+
+public class InstructionRegistry
 {
     private static readonly Lazy<InstructionRegistry> Lazy = new(() => new InstructionRegistry());
 
     public static InstructionRegistry Instance => Lazy.Value;
 
     private readonly InstructionMap _coreInstructions = [];
+    
+    private readonly Dictionary<FungeFunc, string> _instructionNames = [];
+    
+    public static string NameOf(FungeFunc func)
+    {
+        return Instance._instructionNames[func];
+    }
 
     internal static InstructionMap CoreInstructions { get { return Instance._coreInstructions; } }
 
@@ -25,7 +33,7 @@ internal class InstructionRegistry
 
     private void RegisterFingerprint(FungeString name, Type t)
     {
-        _fingerprints[name.Handprint] = ReadFuncs(t);
+        _fingerprints[name.Handprint] = ReadFuncs(t, name);
     }
 
     public static InstructionMap GetFingerprint(FungeInt code)
@@ -38,7 +46,7 @@ internal class InstructionRegistry
         return Instance._fingerprints[name.Handprint];
     }
 
-    private static InstructionMap ReadFuncs(Type t)
+    private InstructionMap ReadFuncs(Type t, string name)
     {
         InstructionMap r = [];
         foreach (var f in t.GetFields(BindingFlags.Static | BindingFlags.Public))
@@ -49,6 +57,7 @@ internal class InstructionRegistry
                 if (f.GetValue(null) is FungeFunc func)
                 {
                     r[attribute.Instruction] = func;
+                    _instructionNames[func] = $"{name}::{attribute.Instruction}";
                 }
             }
         }
@@ -57,7 +66,7 @@ internal class InstructionRegistry
 
     private InstructionRegistry() 
     {
-        _coreInstructions = ReadFuncs(typeof(CoreInstructions));
+        _coreInstructions = ReadFuncs(typeof(CoreInstructions), "");
         RegisterFingerprint("NULL", typeof(NULL));
         RegisterFingerprint("ROMA", typeof(ROMA));
         RegisterFingerprint("MODU", typeof(MODU));

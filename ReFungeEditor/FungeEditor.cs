@@ -12,6 +12,8 @@ using Microsoft.Xna.Framework.Input;
 using ReFunge;
 using ReFunge.Data;
 using ReFunge.Data.Values;
+using ReFunge.Semantics;
+using Vector2 = System.Numerics.Vector2;
 
 namespace ReFungeEditor;
 
@@ -122,7 +124,7 @@ public class FungeEditor : Game
 
     private void OnKeyDown(object sender, InputKeyEventArgs e)
     {
-        if (ImGuiHasKeyboard) return;
+        if (ImGuiHasKeyboard || !IsActive) return;
         if (Keyboard.GetState().IsKeyDown(Keys.LeftControl) || Keyboard.GetState().IsKeyDown(Keys.RightControl))
         {
             var d = int.Abs(_downDim);
@@ -315,7 +317,7 @@ public class FungeEditor : Game
 
     private void HandleKeyboardInput(GameTime gameTime)
     {
-        if (ImGuiHasKeyboard) return;
+        if (ImGuiHasKeyboard || !IsActive) return;
         if (Keyboard.GetState().IsKeyDown(Keys.Left) || Keyboard.GetState().IsKeyDown(Keys.Right) ||
             Keyboard.GetState().IsKeyDown(Keys.Up) || Keyboard.GetState().IsKeyDown(Keys.Down))
         {
@@ -368,7 +370,12 @@ public class FungeEditor : Game
 
     private void HandleMouseInput()
     {
-        if (ImGuiHasMouse) return;
+        if (ImGuiHasMouse || !IsActive) return;
+        if (Mouse.GetState().Position.X > Window.ClientBounds.Size.X || Mouse.GetState().Position.Y > Window.ClientBounds.Size.Y
+            || Mouse.GetState().Position.X < 0 || Mouse.GetState().Position.Y < 0)
+        {
+            return;
+        }
 
         if (Mouse.GetState().LeftButton == ButtonState.Pressed)
         {
@@ -463,30 +470,42 @@ public class FungeEditor : Game
         InterpreterDataView();
 
         IPDataView();
+        
+        ViewInfo();
 
         OutputView();
     }
 
+    private void ViewInfo()
+    {
+        if (!ImGui.Begin("Space View Info")) return;
+        ImGui.Text("Right direction: " + RightDirection);
+        ImGui.Text("Down direction: " + DownDirection);
+            
+        ImGui.Text("Cursor: " + _cursor);
+        ImGui.Text("Cell under cursor: " + Space[_cursor] + " (" + (char)Space[_cursor] + ")");
+        ImGui.End();
+    }
+
     private void OutputView()
     {
-        if (ImGui.Begin("Output"))
+        if (!ImGui.Begin("Output")) return;
+        ImGui.Text("Output:");
+        if (ImGui.Button("Clear"))
         {
-            ImGui.Text("Output:");
-            if (ImGui.Button("Clear"))
-            {
-                _output.GetStringBuilder().Clear();
-            }
-            ImGui.BeginChild("OutputScrolling");
-            ImGui.TextUnformatted(_output.ToString());
-            ImGui.EndChild();
-            ImGui.End();
+            _output.GetStringBuilder().Clear();
         }
+        ImGui.BeginChild("OutputScrolling", new Vector2(), ImGuiChildFlags.Border, ImGuiWindowFlags.HorizontalScrollbar);
+        ImGui.TextUnformatted(_output.ToString());
+        ImGui.EndChild();
+        ImGui.End();
     }
 
     private void IPDataView()
     {
         if (!ImGui.Begin("IP View", ImGuiWindowFlags.AlwaysAutoResize)) return;
         if (IPList.Count == 0) goto EndIPView;
+        ImGui.PushItemWidth(80);
         ImGui.InputInt("IP #", ref _currIPNum, 1);
         if (_currIPNum < 0) _currIPNum = 0;
         if (_currIPNum >= IPList.Count) _currIPNum = IPList.Count - 1;
@@ -508,27 +527,48 @@ public class FungeEditor : Game
             ImGui.Text("String Mode");
         }
 
-        ImGui.Text("Stack ");
-        ImGui.SameLine();
-        ImGui.InputInt(" of " + currip.StackStack.Size, ref _currStackNum);
-        if (_currStackNum < 0) _currStackNum = 0;
-        if (_currStackNum >= currip.StackStack.Size) _currStackNum = currip.StackStack.Size - 1;
-
-        ImGui.BeginTable("StackTable", 2);
-        ImGui.TableSetupColumn("Int");
-        ImGui.TableSetupColumn("Char");
-        ImGui.TableHeadersRow();
-        var stack = IPList[_currIPNum].StackStack[_currStackNum];
-        for (var i = 0; i < stack.Size; i++)
+        if (ImGui.CollapsingHeader("Fingerprint Semantics"))
         {
-            ImGui.TableNextRow();
-            ImGui.TableSetColumnIndex(0);
-            ImGui.Text(stack[i].ToString());
-            ImGui.TableSetColumnIndex(1);
-            ImGui.Text(((char)stack[i]).ToString());
+            ImGui.BeginTable("FingerprintTable", 2);
+            ImGui.TableSetupColumn("Char");
+            ImGui.TableSetupColumn("Instruction");
+            ImGui.TableHeadersRow();
+            foreach (var stack in currip.FingerprintStacks)
+            {
+                if (stack.Count == 0) continue;
+                ImGui.TableNextRow();
+                ImGui.TableSetColumnIndex(0);
+                ImGui.Text(((char)('A' + currip.FingerprintStacks.ToList().IndexOf(stack))).ToString());
+                ImGui.TableSetColumnIndex(1);
+                ImGui.Text(InstructionRegistry.NameOf(stack.Peek()));
+            }
+            ImGui.EndTable();
         }
 
-        ImGui.EndTable();
+        if (ImGui.CollapsingHeader("Stack"))
+        {
+            ImGui.Text("Stack ");
+            ImGui.SameLine();
+            ImGui.InputInt(" of " + currip.StackStack.Size, ref _currStackNum);
+            if (_currStackNum < 0) _currStackNum = 0;
+            if (_currStackNum >= currip.StackStack.Size) _currStackNum = currip.StackStack.Size - 1;
+            ImGui.BeginTable("StackTable", 2);
+            ImGui.TableSetupColumn("Int");
+            ImGui.TableSetupColumn("Char");
+            ImGui.TableHeadersRow();
+            var stack = IPList[_currIPNum].StackStack[_currStackNum];
+            for (var i = 0; i < stack.Size; i++)
+            {
+                ImGui.TableNextRow();
+                ImGui.TableSetColumnIndex(0);
+                ImGui.Text(stack[i].ToString());
+                ImGui.TableSetColumnIndex(1);
+                ImGui.Text(((char)stack[i]).ToString());
+            }
+
+            ImGui.EndTable();
+        }
+
         EndIPView:
         ImGui.End();
     }
