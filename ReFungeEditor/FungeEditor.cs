@@ -83,6 +83,10 @@ public class FungeEditor : Game
     
     private ArrowTimerState _arrowTimerState = ArrowTimerState.Inactive;
     private int _dimValue;
+    private string _loadPath;
+    private bool _loading;
+    private int _customDim;
+    private bool _newSpace;
 
     public FungeEditor()
     {
@@ -96,6 +100,11 @@ public class FungeEditor : Game
         _imGuiRenderer = new ImGuiRenderer(this);
         _imGuiRenderer.RebuildFontAtlas();
 
+        _graphics.IsFullScreen = false;
+        _graphics.PreferredBackBufferWidth = 1280;
+        _graphics.PreferredBackBufferHeight = 720;
+        _graphics.ApplyChanges();
+
         Window.TextInput += OnTextInput;
         Window.KeyDown += OnKeyDown;
         
@@ -105,6 +114,9 @@ public class FungeEditor : Game
         _interpreter.PrimarySpace.LoadString(new FungeVector(), ">\"!dlroW ,olleH\":v\n" +
                                                                            "              v:,_@\n" +
                                                                            "              >  ^");
+        
+        
+        
         base.Initialize();
     }
 
@@ -251,6 +263,8 @@ public class FungeEditor : Game
 
         _font = Content.Load<SpriteFont>("JetBrainsMonoNL");
         _charSize = _font.MeasureString("M").ToPoint();
+        _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
+                   DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
     }
 
     protected override void Update(GameTime gameTime)
@@ -399,7 +413,7 @@ public class FungeEditor : Game
     {
         GraphicsDevice.Clear(_backgroundColor);
 
-        _cursorBlink = float.Pow(float.Abs((float)double.Sin(gameTime.TotalGameTime.TotalSeconds * 1.5)), 2f);
+        _cursorBlink = 0.3f + 0.7f * float.Pow(float.Abs((float)double.Sin(gameTime.TotalGameTime.TotalSeconds)), 2f);
 
         Texture2D ipTexture = new Texture2D(GraphicsDevice, 1, 1);
         ipTexture.SetData(new[] {Color.White});
@@ -426,126 +440,35 @@ public class FungeEditor : Game
 
     private void ImGuiLayout(GameTime gameTime)
     {
-        if (ImGui.Begin("Main Controls"))
+        if (_loading)
         {
-            if (ImGui.Button("Step"))
-            {
-                _interpreter.DoStep();
-            }
-
-            if (ImGui.Button("Run"))
-            {
-                _running = true;
-            }
-
-            if (ImGui.Button("Stop"))
-            {
-                _running = false;
-            }
-
-            ImGui.SliderInt("Steps per Frame", ref _stepsPerFrame, 1, 100);
-            ImGui.SliderInt("Frames per Step", ref _framesPerStep, 1, 100);
-            ImGui.Checkbox("Slow Mode", ref _slowMode);
-            ImGui.End();
+            ImGui.OpenPopup("Load File");
+            _loading = false;
         }
 
-        if (ImGui.Begin("File Menu"))
+        if (_newSpace)
         {
-            ImGui.InputInt("Dimensions", ref _dimValue);
-            if (_dimValue < 1) _dimValue = 1;
-            if (ImGui.Button("Open"))
-            {
-                var result = NativeFileDialogSharp.Dialog.FileOpen("bf,b98,f98,u98,t98");
-                if (!result.IsOk) return;
-                _output = new StringWriter();
-                _interpreter = new Interpreter(_dimValue, output: _output);
-                _interpreter.Load(result.Path);
-            }
-
-            if (ImGui.Button("New"))
-            {
-                _output = new StringWriter();
-                _interpreter = new Interpreter(_dimValue, output: _output);
-                _interpreter.PrimarySpace[0] = '.';
-            }
-
-            ImGui.End();
+            ImGui.OpenPopup("New Space");
+            _newSpace = false;
         }
+        
+        LoadFileModal();
 
-        if (ImGui.Begin("Interpreter View"))
-        {
-            ImGui.Text("Tick: " + _interpreter.Tick);
-            ImGui.Text($"Space Bounds: {Space.MinCoords}, {Space.MaxCoords}");
-            ImGui.Text("IPs: " + IPList.Count);
-            ImGui.Text("IP list:");
-            ImGui.BeginChild("Scrolling");
-            foreach (var ip in IPList)
-            {
-                if (ImGui.Button("Find##" + IPList.IndexOf(ip)))
-                {
-                    _topLeft = ip.Position -
-                               RightDirection * (Window.ClientBounds.Size.X / _charSize.X / 2) -
-                               DownDirection * (Window.ClientBounds.Size.Y / _charSize.Y / 2);
-                    _currIPNum = IPList.IndexOf(ip);
-                }
+        NewSpaceModal();
+        
+        MainMenuBar();
+        
+        DebugControls();
 
-                ImGui.SameLine();
-                ImGui.Text(ip.ToString());
-            }
+        InterpreterDataView();
 
-            ImGui.EndChild();
-            ImGui.End();
-        }
+        IPDataView();
 
-        if (ImGui.Begin("IP View"))
-        {
-            if (IPList.Count == 0) goto EndIPView;
-            ImGui.InputInt("IP #", ref _currIPNum, 1);
-            if (_currIPNum < 0) _currIPNum = 0;
-            if (_currIPNum >= IPList.Count) _currIPNum = IPList.Count - 1;
+        OutputView();
+    }
 
-            var currip = IPList[_currIPNum];
-            
-            ImGui.Text("ID: " + currip.ID);
-
-            ImGui.Checkbox("Follow", ref _followingIP);
-            if (_followingIP)
-            {
-                _followIP = currip;
-            }
-
-            ImGui.Text("Position: " + currip.Position);
-            ImGui.Text("Delta: " + currip.Delta);
-            if (currip.StringMode)
-            {
-                ImGui.Text("String Mode");
-            }
-
-            ImGui.Text("Stack ");
-            ImGui.SameLine();
-            ImGui.InputInt(" of " + currip.StackStack.Size, ref _currStackNum);
-            if (_currStackNum < 0) _currStackNum = 0;
-            if (_currStackNum >= currip.StackStack.Size) _currStackNum = currip.StackStack.Size - 1;
-
-            ImGui.BeginTable("StackTable", 2);
-            ImGui.TableSetupColumn("Int");
-            ImGui.TableSetupColumn("Char");
-            ImGui.TableHeadersRow();
-            var stack = IPList[_currIPNum].StackStack[_currStackNum];
-            for (var i = 0; i < stack.Size; i++)
-            {
-                ImGui.TableNextRow();
-                ImGui.TableSetColumnIndex(0);
-                ImGui.Text(stack[i].ToString());
-                ImGui.TableSetColumnIndex(1);
-                ImGui.Text(((char)stack[i]).ToString());
-            }
-
-            ImGui.EndTable();
-            EndIPView:
-            ImGui.End();
-        }
-
+    private void OutputView()
+    {
         if (ImGui.Begin("Output"))
         {
             ImGui.Text("Output:");
@@ -557,6 +480,191 @@ public class FungeEditor : Game
             ImGui.TextUnformatted(_output.ToString());
             ImGui.EndChild();
             ImGui.End();
+        }
+    }
+
+    private void IPDataView()
+    {
+        if (!ImGui.Begin("IP View", ImGuiWindowFlags.AlwaysAutoResize)) return;
+        if (IPList.Count == 0) goto EndIPView;
+        ImGui.InputInt("IP #", ref _currIPNum, 1);
+        if (_currIPNum < 0) _currIPNum = 0;
+        if (_currIPNum >= IPList.Count) _currIPNum = IPList.Count - 1;
+
+        var currip = IPList[_currIPNum];
+            
+        ImGui.Text("ID: " + currip.ID);
+
+        ImGui.Checkbox("Follow", ref _followingIP);
+        if (_followingIP)
+        {
+            _followIP = currip;
+        }
+
+        ImGui.Text("Position: " + currip.Position);
+        ImGui.Text("Delta: " + currip.Delta);
+        if (currip.StringMode)
+        {
+            ImGui.Text("String Mode");
+        }
+
+        ImGui.Text("Stack ");
+        ImGui.SameLine();
+        ImGui.InputInt(" of " + currip.StackStack.Size, ref _currStackNum);
+        if (_currStackNum < 0) _currStackNum = 0;
+        if (_currStackNum >= currip.StackStack.Size) _currStackNum = currip.StackStack.Size - 1;
+
+        ImGui.BeginTable("StackTable", 2);
+        ImGui.TableSetupColumn("Int");
+        ImGui.TableSetupColumn("Char");
+        ImGui.TableHeadersRow();
+        var stack = IPList[_currIPNum].StackStack[_currStackNum];
+        for (var i = 0; i < stack.Size; i++)
+        {
+            ImGui.TableNextRow();
+            ImGui.TableSetColumnIndex(0);
+            ImGui.Text(stack[i].ToString());
+            ImGui.TableSetColumnIndex(1);
+            ImGui.Text(((char)stack[i]).ToString());
+        }
+
+        ImGui.EndTable();
+        EndIPView:
+        ImGui.End();
+    }
+
+    private void InterpreterDataView()
+    {
+        if (!ImGui.Begin("Interpreter View")) return;
+        ImGui.Text("Tick: " + _interpreter.Tick);
+        ImGui.Text($"Space Bounds: {Space.MinCoords}, {Space.MaxCoords}");
+        ImGui.Text("IPs: " + IPList.Count);
+        ImGui.Text("IP list:");
+        ImGui.BeginChild("Scrolling");
+        foreach (var ip in IPList)
+        {
+            if (ImGui.Button("Find##" + IPList.IndexOf(ip)))
+            {
+                _topLeft = ip.Position -
+                           RightDirection * (Window.ClientBounds.Size.X / _charSize.X / 2) -
+                           DownDirection * (Window.ClientBounds.Size.Y / _charSize.Y / 2);
+                _currIPNum = IPList.IndexOf(ip);
+            }
+
+            ImGui.SameLine();
+            ImGui.Text(ip.ToString());
+        }
+
+        ImGui.EndChild();
+        ImGui.End();
+    }
+
+    private void DebugControls()
+    {
+        if (!ImGui.Begin("Main Controls", ImGuiWindowFlags.AlwaysAutoResize)) return;
+        if (ImGui.Button("Step"))
+        {
+            _interpreter.DoStep();
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Run"))
+        {
+            _running = true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Stop"))
+        {
+            _running = false;
+        }
+        ImGui.PushItemWidth(100);
+        ImGui.SliderInt("Steps per Frame", ref _stepsPerFrame, 1, 100);
+        ImGui.SliderInt("Frames per Step", ref _framesPerStep, 1, 100);
+        ImGui.PopItemWidth();
+        ImGui.Checkbox("Slow Mode", ref _slowMode);
+        ImGui.End();
+    }
+
+    private void MainMenuBar()
+    {
+        if (!ImGui.BeginMainMenuBar()) return;
+        if (ImGui.BeginMenu("File"))
+        {
+            if (ImGui.MenuItem("Open..."))
+            {
+                var result = NativeFileDialogSharp.Dialog.FileOpen("bf,b98,f98,u98,t98");
+                if (result.IsOk)
+                {
+                    _loadPath = result.Path;
+                    _loading = true;
+                }
+            }
+
+            if (ImGui.MenuItem("New..."))
+            {
+                _newSpace = true;
+            }
+
+            ImGui.EndMenu();
+        }
+        ImGui.EndMainMenuBar();
+    }
+
+    private void LoadFileModal()
+    {
+        if (!ImGui.BeginPopupModal("Load File")) return;
+        int dim = 2;
+        ImGui.Text("What kind of space to use?");
+        bool pressedAnyButton = false;
+        if (ImGui.Button("Unefunge (1 dimension)"))
+        {
+            dim = 1;
+            pressedAnyButton = true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Befunge (2 dimensions)"))
+        {
+            dim = 2;
+            pressedAnyButton = true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("Trefunge (3 dimensions)"))
+        {
+            dim = 3;
+            pressedAnyButton = true;
+        }
+
+        ImGui.InputInt("Dimensions", ref _customDim);
+        if (_customDim < 1) _customDim = 1;
+        if (ImGui.Button("Custom"))
+        {
+            dim = _customDim;
+            pressedAnyButton = true;
+        }
+
+        if (pressedAnyButton)
+        {
+            _output = new StringWriter();
+            _interpreter = new Interpreter(dim, output: _output);
+            _interpreter.Load(_loadPath);
+            ImGui.CloseCurrentPopup();
+        }
+        ImGui.EndPopup();
+    }
+
+    private void NewSpaceModal()
+    {
+        if (ImGui.BeginPopupModal("New Space"))
+        {
+            ImGui.InputInt("Dimensions", ref _customDim);
+            if (_customDim < 1) _customDim = 1;
+            if (ImGui.Button("Create"))
+            {
+                _output = new StringWriter();
+                _interpreter = new Interpreter(_customDim, output: _output);
+                _interpreter.PrimarySpace[0] = '.';
+                ImGui.CloseCurrentPopup();
+            }
+            ImGui.EndPopup();
         }
     }
 
