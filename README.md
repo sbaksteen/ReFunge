@@ -11,7 +11,7 @@ It lets you view Funge-Space, IP and stack data, and other useful variables duri
 - Support for the core Funge-98 language
 - File I/O and concurrency are supported
 - Currently supported fingerprints:
-  - `NULL`, `ROMA`, `MODU`
+  - `NULL`, `ROMA`, `MODU`, `MODE`
   - More to come!
 - Supports arbitrary n-dimensional Euclidean Funges (with Lahey-space wrapping).
 - ReFunge Editor:
