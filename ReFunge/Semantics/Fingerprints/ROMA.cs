@@ -1,6 +1,7 @@
 ﻿namespace ReFunge.Semantics.Fingerprints;
 
-internal class ROMA
+[Fingerprint("ROMA")]
+internal static class ROMA
 {
     // ROMA: Roman numerals.
     // Each letter that corresponds to a number in Roman numerals pushes its value to the stack.

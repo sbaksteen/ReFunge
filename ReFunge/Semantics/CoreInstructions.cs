@@ -7,239 +7,235 @@ internal static class CoreInstructions
 {
 
     [Instruction('+')]
-    public static readonly FungeFunc Add = 
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) => a + b);
+    public static FungeInt Add(FungeIP _, FungeInt a, FungeInt b) => a + b;
+
     [Instruction('-')]
-    public static readonly FungeFunc Subtract = 
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) => a - b);
+    public static FungeInt Subtract(FungeIP _, FungeInt a, FungeInt b) => a - b;
+
     [Instruction('*')]
-    public static readonly FungeFunc Multiply = 
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) => a * b);
+    public static FungeInt Multiply(FungeIP _, FungeInt a, FungeInt b) => a * b;
+
     [Instruction('/')]
-    public static readonly FungeFunc Divide = 
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) => b == 0 ? 0 : a / b);
+    public static FungeInt Divide(FungeIP _, FungeInt a, FungeInt b) => b == 0 ? 0 : a / b;
+
     [Instruction('%')]
-    public static readonly FungeFunc Modulo = 
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) => b == 0 ? 0 : a % b);
+    public static FungeInt Modulo(FungeIP _, FungeInt a, FungeInt b) => b == 0 ? 0 : a % b;
 
     [Instruction('`')]
-    public static readonly FungeFunc GreaterThan = 
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) => a > b ? 1 : 0);
+    public static FungeInt GreaterThan(FungeIP _, FungeInt a, FungeInt b) => a > b ? 1 : 0;
 
     [Instruction('!')]
-    public static readonly FungeFunc LogicalNot = 
-        new FungeFunc<FungeInt, FungeInt>((_, v) => v == 0 ? 1 : 0);
+    public static FungeInt LogicalNot(FungeIP _, FungeInt v) => v == 0 ? 1 : 0;
 
     [Instruction('>')]
-    public static readonly FungeFunc GoRight = 
-        new FungeAction(ip =>
+    public static void GoRight(FungeIP ip)
+    {
+        if (ip.HoverMode)
         {
-            if (ip.HoverMode)
-            {
-                ip.Delta += FungeVector.Right;
-            }
-            else
-            {
-                ip.Delta = FungeVector.Right;
-            }
-        });
+            ip.Delta += FungeVector.Right;
+        }
+        else
+        {
+            ip.Delta = FungeVector.Right;
+        }
+    }
+
     [Instruction('<')]
-    public static readonly FungeFunc GoLeft = 
-        new FungeAction(ip =>
+    public static void GoLeft(FungeIP ip)
+    {
+        if (ip.HoverMode)
         {
-            if (ip.HoverMode)
-            {
-                ip.Delta += FungeVector.Left;
-            }
-            else
-            {
-                ip.Delta = FungeVector.Left;
-            }
-        });
+            ip.Delta += FungeVector.Left;
+        }
+        else
+        {
+            ip.Delta = FungeVector.Left;
+        }
+    }
+
     [Instruction('^')]
-    public static readonly FungeFunc GoUp = 
-        new FungeAction(ip =>
+    public static void GoUp(FungeIP ip)
+    {
+        if (ip.Dim < 2) throw new FungeReflectException();
+        if (ip.HoverMode)
         {
-            if (ip.Dim < 2) throw new FungeReflectException();
-            if (ip.HoverMode)
-            {
-                ip.Delta += FungeVector.Up;
-            }
-            else
-            {
-                ip.Delta = FungeVector.Up;
-            }
-        });
+            ip.Delta += FungeVector.Up;
+        }
+        else
+        {
+            ip.Delta = FungeVector.Up;
+        }
+    }
+
     [Instruction('v')]
-    public static readonly FungeFunc GoDown = 
-        new FungeAction(ip =>
+    public static void GoDown(FungeIP ip)
+    {
+        if (ip.Dim < 2) throw new FungeReflectException();
+        if (ip.HoverMode)
         {
-            if (ip.Dim < 2) throw new FungeReflectException();
-            if (ip.HoverMode)
-            {
-                ip.Delta += FungeVector.Down;
-            }
-            else
-            {
-                ip.Delta = FungeVector.Down;
-            }
-        });
+            ip.Delta += FungeVector.Down;
+        }
+        else
+        {
+            ip.Delta = FungeVector.Down;
+        }
+    }
+
     [Instruction('h')]
-    public static readonly FungeFunc GoForwards = 
-        new FungeAction(ip =>
+    public static void GoForwards(FungeIP ip)
+    {
+        if (ip.Dim < 3) throw new FungeReflectException();
+        if (ip.HoverMode)
         {
-            if (ip.Dim < 3) throw new FungeReflectException();
-            if (ip.HoverMode)
-            {
-                ip.Delta += FungeVector.Forwards;
-            }
-            else
-            {
-                ip.Delta = FungeVector.Forwards;
-            }
-        });
+            ip.Delta += FungeVector.Forwards;
+        }
+        else
+        {
+            ip.Delta = FungeVector.Forwards;
+        }
+    }
+
     [Instruction('l')]
-    public static readonly FungeFunc GoBackwards = 
-        new FungeAction(ip =>
+    public static void GoBackwards(FungeIP ip)
+    {
+        if (ip.Dim < 3) throw new FungeReflectException();
+        if (ip.HoverMode)
         {
-            if (ip.Dim < 3) throw new FungeReflectException();
-            if (ip.HoverMode)
-            {
-                ip.Delta += FungeVector.Backwards;
-            }
-            else
-            {
-                ip.Delta = FungeVector.Backwards;
-            }
-        });
+            ip.Delta += FungeVector.Backwards;
+        }
+        else
+        {
+            ip.Delta = FungeVector.Backwards;
+        }
+    }
 
     [Instruction('_')]
-    public static readonly FungeFunc DecideHorizontal = 
-        new FungeAction<FungeInt>((ip, v) =>
-        {
-            if (v == 0)
-                GoRight.Execute(ip);
-            else
-                GoLeft.Execute(ip);
-        });
+    public static void DecideHorizontal(FungeIP ip, FungeInt v)
+    {
+        if (v == 0)
+            GoRight(ip);
+        else
+            GoLeft(ip);
+    }
 
     [Instruction('|')]
-    public static readonly FungeFunc DecideVertical = 
-        new FungeAction<FungeInt>((ip, v) =>
-        {
-            if (ip.Dim < 2) throw new FungeReflectException();
+    public static void DecideVertical(FungeIP ip, FungeInt v)
+    {
+        if (ip.Dim < 2) throw new FungeReflectException();
 
-            if (v == 0) 
-                GoDown.Execute(ip);
-            else
-                GoUp.Execute(ip);
-        });
+        if (v == 0)
+            GoDown(ip);
+        else
+            GoUp(ip);
+    }
 
     [Instruction('m')]
-    public static readonly FungeFunc DecideForwards = 
-        new FungeAction<FungeInt>((ip, v) =>
-        {
-            if (ip.Dim < 3) throw new FungeReflectException();
+    public static void DecideForwards(FungeIP ip, FungeInt v)
+    {
+        if (ip.Dim < 3) throw new FungeReflectException();
 
-            if (v == 0)
-                GoBackwards.Execute(ip);
-            else
-                GoForwards.Execute(ip);
-        });
+        if (v == 0)
+            GoBackwards(ip);
+        else
+            GoForwards(ip);
+    }
 
     [Instruction('?')]
-    public static readonly FungeFunc GoRandom = 
-        new FungeAction(ip =>
-        {
-            ip.Delta = FungeVector.Cardinal(Random.Shared.Next(ip.Dim), Random.Shared.Next(2) * 2 - 1);
-        });
+    public static void GoRandom(FungeIP ip)
+    {
+        ip.Delta = FungeVector.Cardinal(Random.Shared.Next(ip.Dim), Random.Shared.Next(2) * 2 - 1);
+    }
 
     [Instruction('r')]
-    public static readonly FungeFunc Reflect = 
-        new FungeAction(ip => ip.Reflect());
+    public static void Reflect(FungeIP ip)
+    {
+        ip.Reflect();
+    }
 
     [Instruction(']')]
-    public static readonly FungeFunc TurnRight = 
-        new FungeAction(ip =>
+    public static void TurnRight(FungeIP ip)
+    {
+        if (ip.SwitchMode) ip.Space[ip.Position] = '[';
+        switch (ip.Dim)
         {
-            if (ip.SwitchMode) ip.Space[ip.Position] = '[';
-            switch (ip.Dim)
-            {
-                case < 2:
-                    throw new FungeReflectException();
-                case <= 2:
-                    ip.Delta = new FungeVector(-ip.Delta[1], ip.Delta[0]);
-                    return;
-            }
+            case < 2:
+                throw new FungeReflectException();
+            case <= 2:
+                ip.Delta = new FungeVector(-ip.Delta[1], ip.Delta[0]);
+                return;
+        }
 
-            var newDelta = new int[ip.Dim];
-            for (var i = 0; i < ip.Dim; i++)
-            {
-                newDelta[i] = ip.Delta[i];
-            }
-            newDelta[0] = -ip.Delta[1];
-            newDelta[1] = ip.Delta[0];
-            ip.Delta = new FungeVector(newDelta);
-        });
+        var newDelta = new int[ip.Dim];
+        for (var i = 0; i < ip.Dim; i++)
+        {
+            newDelta[i] = ip.Delta[i];
+        }
+
+        newDelta[0] = -ip.Delta[1];
+        newDelta[1] = ip.Delta[0];
+        ip.Delta = new FungeVector(newDelta);
+    }
 
     [Instruction('[')]
-    public static readonly FungeFunc TurnLeft = 
-        new FungeAction(ip =>
+    public static void TurnLeft(FungeIP ip)
+    {
+        if (ip.SwitchMode) ip.Space[ip.Position] = ']';
+        switch (ip.Dim)
         {
-            if (ip.SwitchMode) ip.Space[ip.Position] = ']';
-            switch (ip.Dim)
-            {
-                case < 2:
-                    throw new FungeReflectException();
-                case <= 2:
-                    ip.Delta = new FungeVector(ip.Delta[1], -ip.Delta[0]);
-                    return;
-            }
+            case < 2:
+                throw new FungeReflectException();
+            case <= 2:
+                ip.Delta = new FungeVector(ip.Delta[1], -ip.Delta[0]);
+                return;
+        }
 
-            var newDelta = new int[ip.Dim];
-            for (var i = 0; i < ip.Dim; i++)
-            {
-                newDelta[i] = ip.Delta[i];
-            }
-            newDelta[0] = ip.Delta[1];
-            newDelta[1] = -ip.Delta[0];
-            ip.Delta = new FungeVector(newDelta);
-        });
+        var newDelta = new int[ip.Dim];
+        for (var i = 0; i < ip.Dim; i++)
+        {
+            newDelta[i] = ip.Delta[i];
+        }
+
+        newDelta[0] = ip.Delta[1];
+        newDelta[1] = -ip.Delta[0];
+        ip.Delta = new FungeVector(newDelta);
+    }
+
 
     [Instruction('w')]
-    public static readonly FungeFunc Compare = 
-        new FungeAction<FungeInt, FungeInt>((ip, a, b) =>
+    public static void Compare(FungeIP ip, FungeInt a, FungeInt b)
+    {
+        if (a < b)
         {
-            if (a < b)
-            {
-                TurnLeft.Execute(ip);
-            }
-            else if (a > b)
-            {
-                TurnRight.Execute(ip);
-            }
-        });
+            TurnLeft(ip);
+        }
+        else if (a > b)
+        {
+            TurnRight(ip);
+        }
+    }
 
     [Instruction(':')]
-    public static readonly FungeFunc Duplicate = 
-        new FungeAction<FungeInt>((ip, v) =>
-        {
-            ip.PushToStack(v);
-            ip.PushToStack(v);
-        });
+    public static void Duplicate(FungeIP ip, FungeInt v)
+    {
+        ip.PushToStack(v);
+        ip.PushToStack(v);
+    }
+
     [Instruction('$')]
-    public static readonly FungeFunc Discard = 
-        new FungeAction<FungeInt>((_, _) => { });
+    public static void Discard(FungeIP ip, FungeInt v) { }
+
     [Instruction('\\')]
-    public static readonly FungeFunc Swap = 
-        new FungeAction<FungeInt, FungeInt>((ip, a, b) =>
-        {
-            ip.PushToStack(b);
-            ip.PushToStack(a);
-        });
+    public static void Swap(FungeIP ip, FungeInt a, FungeInt b)
+    {
+        ip.PushToStack(b);
+        ip.PushToStack(a);
+    }
+
     [Instruction('n')]
-    public static readonly FungeFunc ClearStack = 
-        new FungeAction(ip => ip.StackStack.TOSS.Clear());
+    public static void ClearStack(FungeIP ip)
+    {
+        ip.StackStack.TOSS.Clear();
+    }
 
     public static FungeFunc PushNumber(int number) => 
         new FungeAction(ip => ip.PushToStack(number));
@@ -278,350 +274,362 @@ internal static class CoreInstructions
     public static readonly FungeFunc Push15 = PushNumber(15);
 
     [Instruction('"')]
-    public static readonly FungeFunc ToggleStringMode = 
-        new FungeAction(ip =>
-        {
-            ip.StringMode = !ip.StringMode;
-        });
+    public static void ToggleStringMode(FungeIP ip)
+    {
+        ip.StringMode = !ip.StringMode;
+    }
 
     [Instruction('\'')]
-    public static readonly FungeFunc FetchCharacter = 
-        new FungeFunc<FungeInt>(ip =>
-        {
-            ip.Position += ip.Delta;
-            return ip.Space[ip.Position];
-        });
+    public static FungeInt FetchCharacter(FungeIP ip)
+    {
+        ip.Position += ip.Delta;
+        return ip.Space[ip.Position];
+    }
+    
     [Instruction('s')]
-    public static readonly FungeFunc StoreCharacter = 
-        new FungeAction<FungeInt>((ip, v) => 
-        {
-            ip.Position += ip.Delta;
-            ip.Space[ip.Position] = v;
-        });
+    public static void Store(FungeIP ip, FungeInt value)
+    {
+        ip.Position += ip.Delta;
+        ip.Space[ip.Position] = value;
+    }
 
     [Instruction('#')]
-    public static readonly FungeFunc Skip = 
-        new FungeAction(ip => ip.Position += ip.Delta);
+    public static void Skip(FungeIP ip)
+    {
+        ip.Position += ip.Delta;
+    }
 
     [Instruction('g')]
-    public static readonly FungeFunc Get = 
-        new FungeFunc<FungeVector, FungeInt>((ip, pos) => ip.Get(pos));
+    public static FungeInt Get(FungeIP ip, FungeVector pos)
+    {
+        return ip.Get(pos);
+    }
+
     [Instruction('p')]
-    public static readonly FungeFunc Put = 
-        new FungeAction<FungeInt, FungeVector>((ip, v, pos) => ip.Put(pos, v));
+    public static void Put(FungeIP ip, FungeInt v, FungeVector pos)
+    {
+        ip.Put(pos, v);
+    }
 
     [Instruction('~')]
-    public static readonly FungeFunc Input = 
-        new FungeFunc<FungeInt>(ip =>
+    public static FungeInt Input(FungeIP ip)
+    {
+        if (ip.Interpreter.EndOfInput())
         {
-            if (ip.Interpreter.EndOfInput())
-            {
-                throw new FungeReflectException(new InvalidOperationException("End of input reached."));
-            }
-            return ip.Interpreter.ReadCharacter();
-        });
+            throw new FungeReflectException(new InvalidOperationException("End of input reached."));
+        }
+
+        return ip.Interpreter.ReadCharacter();
+    }
+
     [Instruction(',')]
-    public static readonly FungeFunc Output = 
-        new FungeAction<FungeInt>((ip, v) => ip.Interpreter.WriteCharacter((char)v));
+    public static void Output(FungeIP ip, FungeInt v)
+    {
+        ip.Interpreter.WriteCharacter((char)v);
+    }
 
     [Instruction('&')]
-    public static readonly FungeFunc InputInteger = 
-        new FungeFunc<FungeInt>(ip =>
+    public static FungeInt InputInteger(FungeIP ip)
+    {
+        if (ip.Interpreter.EndOfInput())
         {
-            if (ip.Interpreter.EndOfInput())
-            {
-                throw new FungeReflectException(new InvalidOperationException("End of input reached."));
-            }
-            return ip.Interpreter.ReadInteger();
-        });
+            throw new FungeReflectException(new InvalidOperationException("End of input reached."));
+        }
+
+        return ip.Interpreter.ReadInteger();
+    }
+
     [Instruction('.')]
-    public static readonly FungeFunc OutputInteger = 
-        new FungeAction<FungeInt>((ip, v) => ip.Interpreter.WriteInteger(v));
+    public static void OutputInteger(FungeIP ip, FungeInt v)
+    {
+        ip.Interpreter.WriteInteger(v);
+    }
 
     [Instruction('i')]
-    public static readonly FungeFunc InputFile = 
-        new FungeAction<FungeVector, FungeInt, FungeString>((ip, pos, flags, filename) =>
-        {
-            var size = ip.ReadFileIntoSpace(pos, filename, (flags & 1) != 0);
-            ip.PushVectorToStack(size);
-            ip.PushVectorToStack(pos);
-        });
+    public static void InputFile(FungeIP ip, FungeVector pos, FungeInt flags, FungeString filename)
+    {
+        var size = ip.ReadFileIntoSpace(pos, filename, (flags & 1) != 0);
+        ip.PushVectorToStack(size);
+        ip.PushVectorToStack(pos);
+    }
 
     [Instruction('o')]
-    public static readonly FungeFunc OutputFile = 
-        new FungeAction<FungeVector, FungeVector, FungeInt, FungeString>((ip, size, pos, flags, filename) =>
-        {
-            ip.WriteSpaceToFile(pos, size, filename, (flags & 1) != 0);
-        });
+    public static void OutputFile(FungeIP ip, FungeVector size, FungeVector pos, FungeInt flags, FungeString filename)
+    {
+        ip.WriteSpaceToFile(pos, size, filename, (flags & 1) != 0);
+    }
 
     [Instruction('y')]
-    public static readonly FungeFunc SysInfo = 
-        new FungeAction<FungeInt>((ip, n) =>
+    public static void SysInfo(FungeIP ip, FungeInt n)
+    {
+        var tempStack = new FungeStack();
+
+        // Environment variables
+        tempStack.Push(0);
+        var env = Environment.GetEnvironmentVariables();
+        foreach (System.Collections.DictionaryEntry de in env)
         {
-            var tempStack = new FungeStack();
-            var s = ip.StackStack.TOSS.Size;
+            tempStack.PushString(de.Key + "=" + de.Value);
+        }
 
-            // Environment variables
-            tempStack.Push(0);
-            var env = Environment.GetEnvironmentVariables();
-            foreach (System.Collections.DictionaryEntry de in env)
+        // Command line arguments
+        tempStack.Push(0);
+        tempStack.Push(0);
+        var args = Environment.GetCommandLineArgs();
+        foreach (var arg in args)
+        {
+            tempStack.PushString(arg);
+        }
+
+        // Sizes of all stacks
+        for (var i = ip.StackStack.Size - 1; i >= 0; i--)
+        {
+            tempStack.Push(ip.StackStack[i].Size);
+        }
+
+        // Size of stack stack
+        tempStack.Push(ip.StackStack.Size);
+
+        // Current time (hours * 256 * 256 + minutes * 256 + seconds)
+        var now = DateTime.Now;
+        tempStack.Push(now.Hour * 256 * 256 + now.Minute * 256 + now.Second);
+
+        // Current date ((year - 1900) * 256 * 256 + month * 256 + day)
+        tempStack.Push((now.Year - 1900) * 256 * 256 + now.Month * 256 + now.Day);
+
+        // Upper bound of Funge-Space, relative to the lower bound
+        tempStack.PushVector(ip.Space.MaxCoords - ip.Space.MinCoords, ip.Dim);
+        // Lower bound of Funge-Space
+        tempStack.PushVector(ip.Space.MinCoords, ip.Dim);
+
+        // Current storage offset
+        tempStack.PushVector(ip.StorageOffset, ip.Dim);
+        // Current delta
+        tempStack.PushVector(ip.Delta, ip.Dim);
+        // Current position
+        tempStack.PushVector(ip.Position, ip.Dim);
+
+        // Team number of IP
+        tempStack.Push(0);
+        // ID of the IP
+        tempStack.Push(ip.ID);
+        // Number of dimensions
+        tempStack.Push(ip.Dim);
+
+        // Path separator character
+        tempStack.Push(Path.DirectorySeparatorChar);
+
+        // Behavior of '=': Unimplemented
+        tempStack.Push(0);
+
+        // Version number of ReFunge
+        Version version = typeof(CoreInstructions).Assembly.GetName().Version!;
+        tempStack.Push(version.Major * 256 * 256 + version.Minor * 256 + version.Revision);
+
+        // Implementation handprint: ReFn
+        tempStack.Push(new FungeString("ReFn").Handprint);
+
+        // Amount of bytes per cell
+        tempStack.Push(4);
+
+        // Misc. flags:
+        // LSB (0x01): 1 to indicate that 't' is implemented
+        // 0x02: 1 to indicate that 'i' is implemented
+        // 0x04: 1 to indicate that 'o' is implemented
+        // 0x08: 0 to indicate that '=' is not implemented
+        // 0x10: 0 to indicate that input is buffered
+        tempStack.Push(0x07);
+
+        if (n > tempStack.Size)
+        {
+            ip.PushToStack(ip.StackStack.TOSS[n - tempStack.Size - 1]);
+        }
+        else if (n > 0)
+        {
+            ip.PushToStack(tempStack[n - 1]);
+        }
+        else
+        {
+            for (var i = tempStack.Size - 1; i >= 0; i--)
             {
-                tempStack.PushString(de.Key + "=" + de.Value);
+                ip.PushToStack(tempStack[i]);
             }
-
-            // Command line arguments
-            tempStack.Push(0);
-            tempStack.Push(0);
-            var args = Environment.GetCommandLineArgs();
-            foreach (var arg in args)
-            {
-                tempStack.PushString(arg);
-            }
-
-            // Sizes of all stacks
-            for (var i = ip.StackStack.Size - 1; i >= 0; i--)
-            {
-                tempStack.Push(ip.StackStack[i].Size);
-            }
-
-            // Size of stack stack
-            tempStack.Push(ip.StackStack.Size);
-
-            // Current time (hours * 256 * 256 + minutes * 256 + seconds)
-            var now = DateTime.Now;
-            tempStack.Push(now.Hour * 256 * 256 + now.Minute * 256 + now.Second);
-
-            // Current date ((year - 1900) * 256 * 256 + month * 256 + day)
-            tempStack.Push((now.Year - 1900) * 256 * 256 + now.Month * 256 + now.Day);
-
-            // Upper bound of Funge-Space, relative to the lower bound
-            tempStack.PushVector(ip.Space.MaxCoords - ip.Space.MinCoords, ip.Dim);
-            // Lower bound of Funge-Space
-            tempStack.PushVector(ip.Space.MinCoords, ip.Dim);
-
-            // Current storage offset
-            tempStack.PushVector(ip.StorageOffset, ip.Dim);
-            // Current delta
-            tempStack.PushVector(ip.Delta, ip.Dim);
-            // Current position
-            tempStack.PushVector(ip.Position, ip.Dim);
-
-            // Team number of IP
-            tempStack.Push(0);
-            // ID of the IP
-            tempStack.Push(ip.ID);
-            // Number of dimensions
-            tempStack.Push(ip.Dim);
-
-            // Path separator character
-            tempStack.Push(Path.DirectorySeparatorChar);
-
-            // Behavior of '=': Unimplemented
-            tempStack.Push(0);
-
-            // Version number of ReFunge
-            tempStack.Push(101); // Current version: 1.01, we can't really push 0.01.
-
-            // Implementation handprint: ReFn
-            tempStack.Push(new FungeString("ReFn").Handprint);
-
-            // Amount of bytes per cell
-            tempStack.Push(4);
-
-            // Misc. flags:
-            // LSB (0x01): 1 to indicate that 't' is implemented
-            // 0x02: 1 to indicate that 'i' is implemented
-            // 0x04: 1 to indicate that 'o' is implemented
-            // 0x08: 0 to indicate that '=' is not implemented
-            // 0x10: 0 to indicate that input is buffered
-            tempStack.Push(0x07);
-
-            if (n > tempStack.Size)
-            {
-                ip.PushToStack(ip.StackStack.TOSS[n - tempStack.Size - 1]);
-            }
-            else if (n > 0)
-            {
-                ip.PushToStack(tempStack[n-1]);
-            }
-            else
-            {
-                for (var i = tempStack.Size-1; i >= 0; i--)
-                {
-                    ip.PushToStack(tempStack[i]);
-                }
-            }
-        });
+        }
+    }
 
     [Instruction('j')]
-    public static readonly FungeFunc JumpForward = 
-        new FungeAction<FungeInt>((ip, v) =>
-        {
-            ip.Position += ip.Delta * v;
-        });
+    public static void JumpForward(FungeIP ip, FungeInt v)
+    {
+        ip.Position += ip.Delta * v;
+    }
 
     [Instruction('x')]
-    public static readonly FungeFunc SetDelta = 
-        new FungeAction<FungeVector>((ip, d) =>
-        {
-            ip.Delta = d;
-        });
+    public static void SetDelta(FungeIP ip, FungeVector d)
+    {
+        ip.Delta = d;
+    }
 
     [Instruction('k')]
-    public static readonly FungeFunc Iterate = 
-        new FungeAction<FungeInt>((ip, n) =>
+    public static void Iterate(FungeIP ip, FungeInt n)
+    {
+        if (n <= 0)
         {
-            if (n <= 0)
-            {
-                ip.MoveToNext();
-            }
-            var op = ip.Space[ip.NextPosition()];
-            for (var i = 0; i < n; i++)
-            {
-                ip.DoOp(op);
-            }
-        });
+            ip.MoveToNext();
+        }
+
+        var op = ip.Space[ip.NextPosition()];
+        for (var i = 0; i < n; i++)
+        {
+            ip.DoOp(op);
+        }
+    }
 
     [Instruction('@')]
-    public static readonly FungeFunc Terminate = 
-        new FungeAction(ip => ip.Alive = false);
+    public static void Terminate(FungeIP ip)
+    {
+        ip.Alive = false;
+    }
 
     [Instruction('q')]
-    public static readonly FungeFunc Quit = 
-        new FungeAction<FungeInt>((ip, r) => 
-        {
-            ip.Interpreter.ReturnValue = r;
-            ip.RequestQuit = true;
-        });
+    public static void Quit(FungeIP ip, FungeInt r)
+    {
+        ip.Interpreter.ReturnValue = r;
+        ip.RequestQuit = true;
+    }
 
     [Instruction('{')]
-    public static readonly FungeFunc BeginBlock = 
-        new FungeAction<FungeInt>((ip, n) =>
+    public static void BeginBlock(FungeIP ip, FungeInt n)
+    {
+        if (ip.SwitchMode) ip.Space[ip.Position] = '}';
+        ip.StackStack.NewStack();
+        if (n > 0)
         {
-            if (ip.SwitchMode) ip.Space[ip.Position] = '}';
-            ip.StackStack.NewStack();
-            if (n > 0)
+            int[] newStack = new int[n];
+            for (var i = 0; i < n; i++)
             {
-                int[] newStack = new int[n];
-                for (var i = 0; i < n; i++)
-                {
-                    newStack[i] = ip.PopFromSOSS();
-                }
-                for (var i = n - 1; i >= 0; i--)
-                {
-                    ip.PushToStack(newStack[i]);
-                }
+                newStack[i] = ip.PopFromSOSS();
             }
 
-            if (n < 0)
+            for (var i = n - 1; i >= 0; i--)
             {
-                for (var i = 0; i > n; i--)
-                {
-                    ip.PushToSOSS(0);
-                }
+                ip.PushToStack(newStack[i]);
             }
-            ip.PushVectorToSOSS(ip.StorageOffset);
-            ip.StorageOffset = ip.Position + ip.Delta;
-        });
+        }
 
-    [Instruction('}')]
-    public static readonly FungeFunc EndBlock = 
-        new FungeAction<FungeInt>((ip, n) =>
+        if (n < 0)
         {
-            if (ip.SwitchMode) ip.Space[ip.Position] = '{';
-            if (ip.StackStack.Size == 1)
-            {
-                throw new FungeReflectException(new InvalidOperationException("}: No SOSS."));
-            }
-            ip.StorageOffset = ip.PopVectorFromSOSS();
-            if (n > 0)
-            {
-                int[] transfer = new int[n];
-                for (var i = 0; i < n; i++)
-                {
-                    transfer[i] = ip.PopFromStack();
-                }
-                for (var i = n - 1; i >= 0; i--)
-                {
-                    ip.PushToSOSS(transfer[i]);
-                }
-            }
             for (var i = 0; i > n; i--)
             {
-                ip.PopFromSOSS();
+                ip.PushToSOSS(0);
             }
-            ip.StackStack.RemoveStack();
-        });
+        }
+
+        ip.PushVectorToSOSS(ip.StorageOffset);
+        ip.StorageOffset = ip.Position + ip.Delta;
+    }
+
+    [Instruction('}')]
+    public static void EndBlock(FungeIP ip, FungeInt n)
+    {
+        if (ip.SwitchMode) ip.Space[ip.Position] = '{';
+        if (ip.StackStack.Size == 1)
+        {
+            throw new FungeReflectException(new InvalidOperationException("}: No SOSS."));
+        }
+
+        ip.StorageOffset = ip.PopVectorFromSOSS();
+        if (n > 0)
+        {
+            int[] transfer = new int[n];
+            for (var i = 0; i < n; i++)
+            {
+                transfer[i] = ip.PopFromStack();
+            }
+
+            for (var i = n - 1; i >= 0; i--)
+            {
+                ip.PushToSOSS(transfer[i]);
+            }
+        }
+
+        for (var i = 0; i > n; i--)
+        {
+            ip.PopFromSOSS();
+        }
+
+        ip.StackStack.RemoveStack();
+    }
 
     [Instruction('u')]
-    public static readonly FungeFunc StackTransfer = 
-        new FungeAction<FungeInt>((ip, count) =>
+    public static void StackTransfer(FungeIP ip, FungeInt count)
+    {
+        if (ip.StackStack.Size == 1)
         {
-            if (ip.StackStack.Size == 1)
-            {
-                throw new FungeReflectException(new InvalidOperationException("u: No SOSS."));
-            }
-            for (var i = 0; i < count; i++)
-            {
-                ip.PushToStack(ip.PopFromSOSS());
-            }
-            for (var i = 0; i > count; i--)
-            {
-                ip.PushToSOSS(ip.PopFromStack());
-            }
-        });
+            throw new FungeReflectException(new InvalidOperationException("u: No SOSS."));
+        }
+
+        for (var i = 0; i < count; i++)
+        {
+            ip.PushToStack(ip.PopFromSOSS());
+        }
+
+        for (var i = 0; i > count; i--)
+        {
+            ip.PushToSOSS(ip.PopFromStack());
+        }
+    }
 
     [Instruction('z')]
-    public static readonly FungeFunc DoNothing = 
-        new FungeAction(_ => { });
+    public static void DoNothing(FungeIP _)
+    {
+    }
 
     [Instruction('t')]
-    public static readonly FungeFunc Split = 
-        new FungeAction(ip =>
-        {
-            var newIP = ip.Split(ip.Interpreter.IPID++);
-            ip.Interpreter.AddNewIP(newIP, ip);
-        });
+    public static void Split(FungeIP ip)
+    {
+        var newIP = ip.Split(ip.Interpreter.IPID++);
+        ip.Interpreter.AddNewIP(newIP, ip);
+    }
 
     [Instruction('(')]
-    public static readonly FungeFunc LoadFingerprint = 
-        new FungeAction<FungeInt>((ip, n) =>
+    public static void LoadFingerprint(FungeIP ip, FungeInt n)
+    {
+        if (ip.SwitchMode) ip.Space[ip.Position] = ')';
+        var code = 0;
+        for (var i = 0; i < n; i++)
         {
-            if (ip.SwitchMode) ip.Space[ip.Position] = ')';
-            var code = 0;
-            for (var i = 0; i < n; i++)
-            {
-                code = code * 256 + ip.PopFromStack();
-            }
-            try
-            {
-                ip.LoadFingerprint(code);
-                ip.PushToStack(code);
-                ip.PushToStack(1);
-            } catch (KeyNotFoundException e)
-            {
-                throw new FungeReflectException(e);
-            }
-        });
+            code = code * 256 + ip.PopFromStack();
+        }
+
+        try
+        {
+            ip.LoadFingerprint(code);
+            ip.PushToStack(code);
+            ip.PushToStack(1);
+        }
+        catch (Exception e) when (e is KeyNotFoundException or ArgumentException)
+        {
+            throw new FungeReflectException(e);
+        }
+    }
 
     [Instruction(')')]
-    public static readonly FungeFunc UnloadFingerprint = 
-        new FungeAction<FungeInt>((ip, n) =>
+    public static void UnloadFingerprint(FungeIP ip, FungeInt n)
+    {
+        if (ip.SwitchMode) ip.Space[ip.Position] = '(';
+        var code = 0;
+        for (var i = 0; i < n; i++)
         {
-            if (ip.SwitchMode) ip.Space[ip.Position] = '(';
-            var code = 0;
-            for (var i = 0; i < n; i++)
-            {
-                code = code * 256 + ip.PopFromStack();
-            }
-            try
-            {
-                ip.UnloadFingerprint(code);
-            }
-            catch (KeyNotFoundException e)
-            {
-                throw new FungeReflectException(e);
-            }
-        });
+            code = code * 256 + ip.PopFromStack();
+        }
 
+        try
+        {
+            ip.UnloadFingerprint(code);
+        }
+        catch (Exception e) when (e is KeyNotFoundException or ArgumentException)
+        {
+            throw new FungeReflectException(e);
+        }
+    }
 }

@@ -540,7 +540,7 @@ public class FungeEditor : Game
                 ImGui.TableSetColumnIndex(0);
                 ImGui.Text(((char)('A' + currip.FingerprintStacks.ToList().IndexOf(stack))).ToString());
                 ImGui.TableSetColumnIndex(1);
-                ImGui.Text(InstructionRegistry.NameOf(stack.Peek()));
+                // ImGui.Text(InstructionRegistry.NameOf(stack.Peek())); // Needs refactoring
             }
             ImGui.EndTable();
         }

@@ -38,7 +38,7 @@ internal partial class CoreInstructionsTests
         public void Discard_DiscardsTopValue()
         {
             ip2D.PushToStack(5);
-            CoreInstructions.Discard.Execute(ip2D);
+            ip2D.DoOp('$');
             var poppedValue = ip2D.PopFromStack();
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(0));
         }
@@ -48,7 +48,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(5);
             ip2D.PushToStack(3);
-            CoreInstructions.Swap.Execute(ip2D);
+            ip2D.DoOp('\\');
             var poppedValue1 = ip2D.PopFromStack();
             var poppedValue2 = ip2D.PopFromStack();
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(0));
@@ -60,7 +60,7 @@ internal partial class CoreInstructionsTests
         public void Duplicate_DuplicatesTopValue()
         {
             ip2D.PushToStack(5);
-            CoreInstructions.Duplicate.Execute(ip2D);
+            ip2D.DoOp(':');
             var poppedValue1 = ip2D.PopFromStack();
             var poppedValue2 = ip2D.PopFromStack();
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(0));
@@ -77,7 +77,7 @@ internal partial class CoreInstructionsTests
             ip2D.PushToStack(2);
             ip2D.PushToStack(1);
             ip2D.PushToStack(9);
-            CoreInstructions.ClearStack.Execute(ip2D);
+            ip2D.DoOp('n');
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(0));
         }
 
@@ -85,7 +85,7 @@ internal partial class CoreInstructionsTests
         public void BeginBlock_PushesNewStack()
         {
             ip2D.PushToStack(0);
-            CoreInstructions.BeginBlock.Execute(ip2D);
+            ip2D.DoOp('{');
             Assert.That(ip2D.StackStack.Size, Is.EqualTo(2));
         }
 
@@ -93,7 +93,7 @@ internal partial class CoreInstructionsTests
         public void BeginBlock_UpdatesStorageOffset()
         {
             ip2D.PushToStack(0);
-            CoreInstructions.BeginBlock.Execute(ip2D);
+            ip2D.DoOp('{');
             Assert.That(ip2D.StorageOffset, Is.EqualTo(new FungeVector(1, 0)));
         }
 
@@ -101,7 +101,7 @@ internal partial class CoreInstructionsTests
         public void BeginBlock_PushesStorageOffsetToSOSS()
         {
             ip2D.PushToStack(0);
-            CoreInstructions.BeginBlock.Execute(ip2D);
+            ip2D.DoOp('{');
             Debug.Assert(ip2D.StackStack.SOSS != null, "ip2D.StackStack.SOSS != null");
             Assert.That(ip2D.StackStack.SOSS.Size, Is.EqualTo(2));
             Assert.That(ip2D.StackStack.SOSS.Pop(), Is.EqualTo(new FungeInt(0)));
@@ -114,7 +114,7 @@ internal partial class CoreInstructionsTests
         public void BeginBlock_PushesZeroesToSOSS_IfArgumentNegative(uint n)
         {
             ip2D.PushToStack((int)-n);
-            CoreInstructions.BeginBlock.Execute(ip2D);
+            ip2D.DoOp('{');
             Debug.Assert(ip2D.StackStack.SOSS != null, "ip2D.StackStack.SOSS != null");
             Assert.That(ip2D.StackStack.SOSS.Size, Is.EqualTo(n + 2));
         }
@@ -129,7 +129,7 @@ internal partial class CoreInstructionsTests
                 ip2D.PushToStack(i);
             }
             ip2D.PushToStack((int)n);
-            CoreInstructions.BeginBlock.Execute(ip2D);
+            ip2D.DoOp('{');
             Debug.Assert(ip2D.StackStack.SOSS != null, "ip2D.StackStack.SOSS != null");
             Assert.That(ip2D.StackStack.SOSS.Size, Is.EqualTo(2));
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(n));
@@ -143,7 +143,7 @@ internal partial class CoreInstructionsTests
         public void EndBlock_PopsStack()
         {
             ip2D.StackStack.PushStack(new FungeStack());
-            CoreInstructions.EndBlock.Execute(ip2D);
+            ip2D.DoOp('}');
             Assert.That(ip2D.StackStack.Size, Is.EqualTo(1));
         }
         
@@ -153,7 +153,7 @@ internal partial class CoreInstructionsTests
             ip2D.StackStack.PushStack(new FungeStack());
             ip2D.StackStack.SOSS.Push(5);
             ip2D.StackStack.SOSS.Push(3);
-            CoreInstructions.EndBlock.Execute(ip2D);
+            ip2D.DoOp('}');
             Assert.That(ip2D.StorageOffset, Is.EqualTo(new FungeVector(5, 3)));
         }
         
@@ -168,7 +168,7 @@ internal partial class CoreInstructionsTests
                 ip2D.PushToStack(i);
             }
             ip2D.PushToStack((int)n);
-            CoreInstructions.EndBlock.Execute(ip2D);
+            ip2D.DoOp('}');
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(n));
             for (int i = 0; i < n; i++)
             {
@@ -187,14 +187,14 @@ internal partial class CoreInstructionsTests
                 ip2D.StackStack.SOSS.Push(i);
             }
             ip2D.PushToStack((int)-n);
-            CoreInstructions.EndBlock.Execute(ip2D);
+            ip2D.DoOp('}');
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(100 - n));
         }
 
         [Test]
         public void EndBlock_Reflects_IfOnlyOneStackExists()
         {
-            CoreInstructions.EndBlock.Execute(ip2D);
+            ip2D.DoOp('}');
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(-1, 0)));
             Assert.That(ip2D.StackStack.Size, Is.EqualTo(1));
         }
@@ -210,7 +210,7 @@ internal partial class CoreInstructionsTests
                 ip2D.StackStack.SOSS.Push(i);
             }
             ip2D.PushToStack((int)n);
-            CoreInstructions.StackTransfer.Execute(ip2D);
+            ip2D.DoOp('u');
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(n));
             for (int i = 0; i < n; i++)
             {
@@ -229,7 +229,7 @@ internal partial class CoreInstructionsTests
                 ip2D.StackStack.TOSS.Push(i);
             }
             ip2D.PushToStack((int)-n);
-            CoreInstructions.StackTransfer.Execute(ip2D);
+            ip2D.DoOp('u');
             Assert.That(ip2D.StackStack.SOSS.Size, Is.EqualTo(n));
             for (int i = 0; i < n; i++)
             {
@@ -240,7 +240,7 @@ internal partial class CoreInstructionsTests
         [Test]
         public void StackTransfer_Reflects_IfOnlyOneStackExists()
         {
-            CoreInstructions.StackTransfer.Execute(ip2D);
+            ip2D.DoOp('}');
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(-1, 0)));
             Assert.That(ip2D.StackStack.Size, Is.EqualTo(1));
         }
@@ -250,7 +250,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.StackStack.PushStack(new FungeStack());
             ip2D.PushToStack(0);
-            CoreInstructions.StackTransfer.Execute(ip2D);
+            ip2D.DoOp('u');
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(1, 0)));
             Assert.That(ip2D.StackStack.TOSS.Size, Is.EqualTo(0));
             Assert.That(ip2D.StackStack.SOSS.Size, Is.EqualTo(0));

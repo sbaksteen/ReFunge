@@ -2,6 +2,7 @@
 using ReFunge.Data;
 using ReFunge.Data.Values;
 using ReFunge.Semantics;
+using ReFunge.Semantics.Fingerprints;
 
 namespace ReFunge;
 
@@ -30,6 +31,8 @@ public class FungeIP
     public bool RequestQuit { get; set; } = false;
     
     public IPModes Modes { get; set; } = IPModes.None;
+    
+    private Dictionary<FungeInt, InstancedFingerprint> _instancedFingerprints = new();
 
     public bool StringMode
     {
@@ -115,8 +118,10 @@ public class FungeIP
     public FungeVector Position = new();
     public FungeVector StorageOffset = new();
     public FungeVector Delta = FungeVector.Right;
+    
+    private InstructionRegistry InstructionRegistry => Interpreter.InstructionRegistry;
 
-    internal InstructionMap Functions { get; set; } = new(InstructionRegistry.CoreInstructions);
+    internal InstructionMap Functions { get; set; }
 
     public Stack<FungeFunc>[] FingerprintStacks { get; } = new Stack<FungeFunc>[26];
 
@@ -127,6 +132,7 @@ public class FungeIP
         Space = space;
         Dim = space.Dim;
         StackStack = new FungeStackStack();
+        Functions = new InstructionMap(interpreter.InstructionRegistry.CoreInstructions);
         ID = id;
         for (var i = 0; i < 26; i++)
         {
@@ -182,16 +188,47 @@ public class FungeIP
 
     public void LoadFingerprint(FungeInt code)
     {
-        var dict = InstructionRegistry.GetFingerprint(code);
+        var dict = FindFingerprint(code);
+
         foreach (var pair in dict)
         {
             FingerprintStacks[pair.Key - 'A'].Push(pair.Value);
         }
     }
 
+    private InstructionMap FindFingerprint(FungeInt code)
+    {
+        InstructionMap dict;
+        switch (InstructionRegistry.TypeOf(code))
+        {
+            case FingerprintType.Static:
+                dict = InstructionRegistry.GetStaticFingerprint(code);
+                break;
+            case FingerprintType.InstancedPerInterpreter:
+                dict = InstructionRegistry.GetInterpreterFingerprint(code);
+                break;
+            case FingerprintType.InstancedPerSpace:
+                // Not implemented yet
+                throw new NotImplementedException();
+                break;
+            case FingerprintType.InstancedPerIP:
+                if (!_instancedFingerprints.TryGetValue(code, out var fingerprint))
+                {
+                    fingerprint = InstructionRegistry.NewInstance(code, this);
+                    _instancedFingerprints[code] = fingerprint;
+                }
+                dict = fingerprint.Instructions;
+                break;
+            default:
+                throw new InvalidOperationException("Unknown fingerprint type");
+        }
+
+        return dict;
+    }
+
     public void UnloadFingerprint(FungeInt code)
     {
-        var dict = InstructionRegistry.GetFingerprint(code);
+        var dict = FindFingerprint(code);
         foreach (var pair in dict)
         {
             FingerprintStacks[pair.Key - 'A'].Pop();

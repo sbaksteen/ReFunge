@@ -12,19 +12,19 @@ internal partial class CoreInstructionsTests
         public void LeftAndRight_SetDeltaCorrectly()
         {
             // Left and right should work in all dimensions
-            CoreInstructions.GoLeft.Execute(ip1D);
+            ip1D.DoOp('<');
             Assert.That(ip1D.Delta, Is.EqualTo(FungeVector.Left));
-            CoreInstructions.GoRight.Execute(ip1D);
+            ip1D.DoOp('>');
             Assert.That(ip1D.Delta, Is.EqualTo(FungeVector.Right));
                 
-            CoreInstructions.GoLeft.Execute(ip2D);
+            ip2D.DoOp('<');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Left));
-            CoreInstructions.GoRight.Execute(ip2D);
+            ip2D.DoOp('>');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Right));
 
-            CoreInstructions.GoLeft.Execute(ip3D);
+            ip3D.DoOp('<');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Left));
-            CoreInstructions.GoRight.Execute(ip3D);
+            ip3D.DoOp('>');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Right));
         }
 
@@ -32,14 +32,14 @@ internal partial class CoreInstructionsTests
         public void UpAndDown_SetDeltaCorrectly()
         {
             // Up and down should work in 2D and 3D
-            CoreInstructions.GoUp.Execute(ip2D);
+            ip2D.DoOp('^');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Up));
-            CoreInstructions.GoDown.Execute(ip2D);
+            ip2D.DoOp('v');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Down));
 
-            CoreInstructions.GoUp.Execute(ip3D);
+            ip3D.DoOp('^');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Up));
-            CoreInstructions.GoDown.Execute(ip3D);
+            ip3D.DoOp('v');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Down));
 
         }
@@ -48,18 +48,18 @@ internal partial class CoreInstructionsTests
         public void UpAndDown_Reflect_In1D()
         {
             FungeVector d = ip1D.Delta;
-            CoreInstructions.GoUp.Execute(ip1D);
+            ip1D.DoOp('^');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
-            CoreInstructions.GoDown.Execute(ip1D);
+            ip1D.DoOp('v');
             Assert.That(ip1D.Delta, Is.EqualTo(d));
         }
 
         [Test]
         public void ForwardAndBackwards_SetDeltaCorrectly()
         {
-            CoreInstructions.GoForwards.Execute(ip3D);
+            ip3D.DoOp('h');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Forwards));
-            CoreInstructions.GoBackwards.Execute(ip3D);
+            ip3D.DoOp('l');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Backwards));
 
         }
@@ -68,15 +68,15 @@ internal partial class CoreInstructionsTests
         public void ForwardAndBackwards_Reflect_In1DAnd2D()
         {
             FungeVector d = ip1D.Delta;
-            CoreInstructions.GoForwards.Execute(ip1D);
+            ip1D.DoOp('h');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
-            CoreInstructions.GoBackwards.Execute(ip1D);
+            ip1D.DoOp('l');
             Assert.That(ip1D.Delta, Is.EqualTo(d));
 
             d = ip2D.Delta;
-            CoreInstructions.GoForwards.Execute(ip2D);
+            ip2D.DoOp('h');
             Assert.That(ip2D.Delta, Is.EqualTo(-d));
-            CoreInstructions.GoBackwards.Execute(ip2D);
+            ip2D.DoOp('l');
             Assert.That(ip2D.Delta, Is.EqualTo(d));
         }
 
@@ -105,7 +105,7 @@ internal partial class CoreInstructionsTests
             HashSet<FungeVector> visited = new();
             for (int i = 0; i < 100; i++)
             {
-                CoreInstructions.GoRandom.Execute(ip1D);
+                ip1D.DoOp('?');
                 visited.Add(ip1D.Delta);
             }
             Assert.That(visited.SetEquals(toVisit1D));
@@ -113,7 +113,7 @@ internal partial class CoreInstructionsTests
             visited.Clear();
             for (int i = 0; i < 100; i++)
             {
-                CoreInstructions.GoRandom.Execute(ip2D);
+                ip2D.DoOp('?');
                 visited.Add(ip2D.Delta);
             }
             Assert.That(visited.SetEquals(toVisit2D));
@@ -121,7 +121,7 @@ internal partial class CoreInstructionsTests
             visited.Clear();
             for (int i = 0; i < 100; i++)
             {
-                CoreInstructions.GoRandom.Execute(ip3D);
+                ip3D.DoOp('?');
                 visited.Add(ip3D.Delta);
             }
             Assert.That(visited.SetEquals(toVisit3D));
@@ -133,18 +133,18 @@ internal partial class CoreInstructionsTests
             // Should go right if top of stack is zero
             ip1D.Delta = FungeVector.Left;
             ip1D.PushToStack(0);
-            CoreInstructions.DecideHorizontal.Execute(ip1D);
+            ip1D.DoOp('_');
             Assert.That(ip1D.Delta, Is.EqualTo(FungeVector.Right));
 
             // Should also work in 2D and 3D
             ip2D.Delta = FungeVector.Up;
             ip2D.PushToStack(0);
-            CoreInstructions.DecideHorizontal.Execute(ip2D);
+            ip2D.DoOp('_');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Right));
 
             ip3D.Delta = FungeVector.Forwards;
             ip3D.PushToStack(0);
-            CoreInstructions.DecideHorizontal.Execute(ip3D);
+            ip3D.DoOp('_');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Right));
         }
 
@@ -157,18 +157,18 @@ internal partial class CoreInstructionsTests
             // Should go left if top of stack is non-zero
             ip1D.Delta = FungeVector.Right;
             ip1D.PushToStack(n);
-            CoreInstructions.DecideHorizontal.Execute(ip1D);
+            ip1D.DoOp('_');
             Assert.That(ip1D.Delta, Is.EqualTo(FungeVector.Left));
 
             // Should also work in 2D and 3D
             ip2D.Delta = FungeVector.Down;
             ip2D.PushToStack(n);
-            CoreInstructions.DecideHorizontal.Execute(ip2D);
+            ip2D.DoOp('_');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Left));
 
             ip3D.Delta = FungeVector.Backwards;
             ip3D.PushToStack(n);
-            CoreInstructions.DecideHorizontal.Execute(ip3D);
+            ip3D.DoOp('_');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Left));
         }
 
@@ -178,13 +178,13 @@ internal partial class CoreInstructionsTests
             // Should go down if top of stack is zero
             ip2D.Delta = FungeVector.Up;
             ip2D.PushToStack(0);
-            CoreInstructions.DecideVertical.Execute(ip2D);
+            ip2D.DoOp('|');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Down));
 
             // Should also work in 3D
             ip3D.Delta = FungeVector.Forwards;
             ip3D.PushToStack(0);
-            CoreInstructions.DecideVertical.Execute(ip3D);
+            ip3D.DoOp('|');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Down));
         }
 
@@ -197,13 +197,13 @@ internal partial class CoreInstructionsTests
             // Should go up if top of stack is non-zero
             ip2D.Delta = FungeVector.Down;
             ip2D.PushToStack(n);
-            CoreInstructions.DecideVertical.Execute(ip2D);
+            ip2D.DoOp('|');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Up));
 
             // Should also work in 3D
             ip3D.Delta = FungeVector.Backwards;
             ip3D.PushToStack(n);
-            CoreInstructions.DecideVertical.Execute(ip3D);
+            ip3D.DoOp('|');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Up));
         }
 
@@ -216,7 +216,7 @@ internal partial class CoreInstructionsTests
         {
             FungeVector d = ip1D.Delta;
             ip1D.PushToStack(n);
-            CoreInstructions.DecideVertical.Execute(ip1D);
+            ip1D.DoOp('|');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
         }
 
@@ -226,7 +226,7 @@ internal partial class CoreInstructionsTests
             // Should go backwards if top of stack is zero
             ip3D.Delta = FungeVector.Forwards;
             ip3D.PushToStack(0);
-            CoreInstructions.DecideForwards.Execute(ip3D);
+            ip3D.DoOp('m');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Backwards));
         }
 
@@ -239,7 +239,7 @@ internal partial class CoreInstructionsTests
             // Should go forwards if top of stack is non-zero
             ip3D.Delta = FungeVector.Backwards;
             ip3D.PushToStack(n);
-            CoreInstructions.DecideForwards.Execute(ip3D);
+            ip3D.DoOp('m');
             Assert.That(ip3D.Delta, Is.EqualTo(FungeVector.Forwards));
         }
 
@@ -252,12 +252,12 @@ internal partial class CoreInstructionsTests
         {
             FungeVector d = ip1D.Delta;
             ip1D.PushToStack(n);
-            CoreInstructions.DecideForwards.Execute(ip1D);
+            ip1D.DoOp('m');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
 
             d = ip2D.Delta;
             ip2D.PushToStack(n);
-            CoreInstructions.DecideForwards.Execute(ip2D);
+            ip2D.DoOp('m');
             Assert.That(ip2D.Delta, Is.EqualTo(-d));
         }
 
@@ -269,7 +269,7 @@ internal partial class CoreInstructionsTests
         {
             var d = new FungeVector(x, y, z);
             ip3D.Delta = d;
-            CoreInstructions.Reflect.Execute(ip3D);
+            ip3D.DoOp('r');
             Assert.That(ip3D.Delta, Is.EqualTo(-d));
         }
             
@@ -282,7 +282,7 @@ internal partial class CoreInstructionsTests
             var d = new FungeVector(x, y, z);
             ip3D.Delta = d;
             var p = ip3D.Position;
-            CoreInstructions.Skip.Execute(ip3D);
+            ip3D.DoOp('#');
             Assert.That(ip3D.Position, Is.EqualTo(p + d));
         }
             
@@ -296,7 +296,7 @@ internal partial class CoreInstructionsTests
             var d = new FungeVector(1, 0, 0);
             ip3D.Delta = d;
             ip3D.PushToStack(n);
-            CoreInstructions.JumpForward.Execute(ip3D);
+            ip3D.DoOp('j');
             Assert.That(ip3D.Position, Is.EqualTo(new FungeVector(n, 0, 0)));
         }
             
@@ -309,7 +309,7 @@ internal partial class CoreInstructionsTests
             ip3D.PushToStack(x);
             ip3D.PushToStack(y);
             ip3D.PushToStack(z);
-            CoreInstructions.SetDelta.Execute(ip3D);
+            ip3D.DoOp('x');
             Assert.That(ip3D.Delta, Is.EqualTo(new FungeVector(x, y, z)));
         }
             
@@ -321,7 +321,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(x);
             ip2D.PushToStack(y);
-            CoreInstructions.SetDelta.Execute(ip2D);
+            ip2D.DoOp('x');
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(x, y)));
         }
             
@@ -331,7 +331,7 @@ internal partial class CoreInstructionsTests
         public void SetDelta_SetsDeltaCorrectly_1D(int x)
         {
             ip1D.PushToStack(x);
-            CoreInstructions.SetDelta.Execute(ip1D);
+            ip1D.DoOp('x');
             Assert.That(ip1D.Delta, Is.EqualTo(new FungeVector(x)));
         }
             
@@ -340,7 +340,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(), "k3");
             ip1D.PushToStack(3);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
@@ -353,7 +353,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(-1), "3k");
             ip1D.PushToStack(3);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
@@ -366,7 +366,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(), "k    ;;;3");
             ip1D.PushToStack(3);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
@@ -379,7 +379,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(), "k3");
             ip1D.PushToStack(0);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
             Assert.That(ip1D.Position, Is.EqualTo(new FungeVector(1)));
         }
@@ -389,7 +389,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(), "k3");
             ip1D.PushToStack(-1);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
             Assert.That(ip1D.Position, Is.EqualTo(new FungeVector(1)));
         }
@@ -399,7 +399,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(-1), "3k");
             ip1D.PushToStack(0);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
             Assert.That(ip1D.Position, Is.EqualTo(new FungeVector(-1)));
         }
@@ -409,7 +409,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(), "k    ;;;3");
             ip1D.PushToStack(0);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
             Assert.That(ip1D.Position, Is.EqualTo(new FungeVector(8)));
         }
@@ -419,7 +419,7 @@ internal partial class CoreInstructionsTests
         {
             ip1D.Space.LoadString(new FungeVector(), "k#");
             ip1D.PushToStack(4);
-            CoreInstructions.Iterate.Execute(ip1D);
+            ip1D.DoOp('k');
             Assert.That(ip1D.Position, Is.EqualTo(new FungeVector(4)));
         }
             
@@ -427,7 +427,7 @@ internal partial class CoreInstructionsTests
         public void TurnRight_TurnsRight_CardinalDirection()
         {
             ip2D.Delta = FungeVector.Up;
-            CoreInstructions.TurnRight.Execute(ip2D);
+            ip2D.DoOp(']');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Right));
         }
             
@@ -435,7 +435,7 @@ internal partial class CoreInstructionsTests
         public void TurnRight_TurnsRight_NonCardinalDirection()
         {
             ip2D.Delta = new FungeVector(3, -2);
-            CoreInstructions.TurnRight.Execute(ip2D);
+            ip2D.DoOp(']');
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(2, 3)));
         }
             
@@ -443,7 +443,7 @@ internal partial class CoreInstructionsTests
         public void TurnRight_TurnsRight_In3D()
         {
             ip3D.Delta = new FungeVector(3, -2, 5);
-            CoreInstructions.TurnRight.Execute(ip3D);
+            ip3D.DoOp(']');
             Assert.That(ip3D.Delta, Is.EqualTo(new FungeVector(2, 3, 5)));
         }
             
@@ -451,7 +451,7 @@ internal partial class CoreInstructionsTests
         public void TurnRight_Reflects_In1D()
         {
             FungeVector d = ip1D.Delta;
-            CoreInstructions.TurnRight.Execute(ip1D);
+            ip1D.DoOp(']');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
         }
             
@@ -459,7 +459,7 @@ internal partial class CoreInstructionsTests
         public void TurnLeft_TurnsLeft_CardinalDirection()
         {
             ip2D.Delta = FungeVector.Up;
-            CoreInstructions.TurnLeft.Execute(ip2D);
+            ip2D.DoOp('[');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Left));
         }
             
@@ -467,7 +467,7 @@ internal partial class CoreInstructionsTests
         public void TurnLeft_TurnsLeft_NonCardinalDirection()
         {
             ip2D.Delta = new FungeVector(3, -2);
-            CoreInstructions.TurnLeft.Execute(ip2D);
+            ip2D.DoOp('[');
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(-2, -3)));
         }
             
@@ -475,7 +475,7 @@ internal partial class CoreInstructionsTests
         public void TurnLeft_TurnsLeft_In3D()
         {
             ip3D.Delta = new FungeVector(3, -2, 5);
-            CoreInstructions.TurnLeft.Execute(ip3D);
+            ip3D.DoOp('[');
             Assert.That(ip3D.Delta, Is.EqualTo(new FungeVector(-2, -3, 5)));
         }
             
@@ -483,7 +483,7 @@ internal partial class CoreInstructionsTests
         public void TurnLeft_Reflects_In1D()
         {
             FungeVector d = ip1D.Delta;
-            CoreInstructions.TurnLeft.Execute(ip1D);
+            ip1D.DoOp('[');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
         }
             
@@ -492,7 +492,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(5);
             ip2D.PushToStack(3);
-            CoreInstructions.Compare.Execute(ip2D);
+            ip2D.DoOp('w');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Down));
         }
             
@@ -501,7 +501,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(3);
             ip2D.PushToStack(5);
-            CoreInstructions.Compare.Execute(ip2D);
+            ip2D.DoOp('w');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Up));
         }
             
@@ -510,7 +510,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(5);
             ip2D.PushToStack(5);
-            CoreInstructions.Compare.Execute(ip2D);
+            ip2D.DoOp('w');
             Assert.That(ip2D.Delta, Is.EqualTo(FungeVector.Right));
         }
     }

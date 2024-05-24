@@ -20,8 +20,6 @@
     </PackageReference>
     <PackageReference Include="NUnit.Console" Version="3.17.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-    <PackageReference Include="System.IO.Abstractions" Version="21.0.2" />
-    <PackageReference Include="System.IO.Abstractions.TestingHelpers" Version="21.0.2" />
   </ItemGroup>
 
   <ItemGroup>

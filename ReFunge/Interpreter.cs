@@ -1,5 +1,6 @@
 ﻿using ReFunge.Data;
 using ReFunge.Data.Values;
+using ReFunge.Semantics;
 
 namespace ReFunge;
 
@@ -10,6 +11,8 @@ public class Interpreter
     // New IPs should always be inserted before the parent
     // If the new IP does not have a parent, insert it at the start
     internal List<(FungeIP ip, FungeIP? parent)> NewIPList = [];
+
+    public InstructionRegistry InstructionRegistry { get; }
 
     internal int IPID;
 
@@ -32,6 +35,7 @@ public class Interpreter
         input ??= Console.In;
         output ??= Console.Out;
         errorOutput ??= Console.Error;
+        InstructionRegistry = new InstructionRegistry(this);
         Output = output;
         Input = input;
         Error = errorOutput;
@@ -135,5 +139,10 @@ public class Interpreter
     public void Load(string filename)
     {
         PrimarySpace.LoadFile(new FungeVector(), filename);
+    }
+
+    public void WriteString(string str)
+    {
+        Output.Write(str);
     }
 }

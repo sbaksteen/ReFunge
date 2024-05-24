@@ -2,24 +2,24 @@
 
 namespace ReFunge.Semantics.Fingerprints;
 
-internal class MODU
+[Fingerprint("MODU")]
+internal static class MODU
 {
     // MODU: Modulo arithmetic extension
     // Implements different modulo behaviors found in various languages
 
     [Instruction('M')] 
-    public static FungeFunc SignedResultModulo =
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) =>
+    public static FungeInt SignedResultModulo(FungeIP _, FungeInt a, FungeInt b) =>
+        (int)b switch
         {
-            if (b == 0) return 0;
-            return b < 0 ? -(a % b) : a % b;
-        });
+            0 => 0,
+            < 0 => -(a % b),
+            _ => a % b
+        };
 
     [Instruction('R')] 
-    public static FungeFunc HalfSignedModulo = CoreInstructions.Modulo;
+    public static FungeInt HalfSignedModulo(FungeIP _, FungeInt a, FungeInt b) => b == 0 ? 0 : a % b;
     
     [Instruction('U')]
-    public static FungeFunc UnsignedModulo =
-        new FungeFunc<FungeInt, FungeInt, FungeInt>((_, a, b) => 
-            b == 0 ? 0 : int.Abs(a % b));
+    public static FungeInt UnsignedModulo(FungeIP _, FungeInt a, FungeInt b) => int.Abs(HalfSignedModulo(_, a, b));
 }

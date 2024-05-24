@@ -1,10 +1,12 @@
 ﻿namespace ReFunge.Semantics.Fingerprints;
 
-internal class NULL
+[Fingerprint("NULL")]
+internal static class NULL
 {
     // NULL: The null fingerprint. Clears fingerprint functions.
     // Everything reflects, but explicitly so.
     // This is rather silly.
+    
     [Instruction('A')]
     [Instruction('B')]
     [Instruction('C')]
@@ -31,5 +33,5 @@ internal class NULL
     [Instruction('X')]
     [Instruction('Y')]
     [Instruction('Z')]
-    public static FungeFunc Reflect = CoreInstructions.Reflect;
+    public static void Reflect(FungeIP ip) => ip.Reflect();
 }

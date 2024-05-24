@@ -13,7 +13,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(5);
             ip2D.PushToStack(3);
-            CoreInstructions.Add.Execute(ip2D);
+            ip2D.DoOp('+');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(8)));
         }
 
@@ -22,7 +22,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(5);
             ip2D.PushToStack(3);
-            CoreInstructions.Subtract.Execute(ip2D);
+            ip2D.DoOp('-');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(2)));
         }
 
@@ -31,7 +31,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(5);
             ip2D.PushToStack(3);
-            CoreInstructions.Multiply.Execute(ip2D);
+            ip2D.DoOp('*');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(15)));
         }
 
@@ -40,7 +40,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(43);
             ip2D.PushToStack(5);
-            CoreInstructions.Divide.Execute(ip2D);
+            ip2D.DoOp('/');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(8)));
         }
 
@@ -49,7 +49,7 @@ internal partial class CoreInstructionsTests
         { 
             ip2D.PushToStack(43);
             ip2D.PushToStack(0);
-            CoreInstructions.Divide.Execute(ip2D);
+            ip2D.DoOp('/');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
         }
 
@@ -58,7 +58,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(43);
             ip2D.PushToStack(5);
-            CoreInstructions.Modulo.Execute(ip2D);
+            ip2D.DoOp('%');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(3)));
         }
 
@@ -66,7 +66,7 @@ internal partial class CoreInstructionsTests
         public void Mod_PushesZero_ForZeroDivisor() { 
             ip2D.PushToStack(43);
             ip2D.PushToStack(0);
-            CoreInstructions.Modulo.Execute(ip2D);
+            ip2D.DoOp('%');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
         }
 
@@ -74,7 +74,7 @@ internal partial class CoreInstructionsTests
         public void Not_PushesOne_ForZeroArgument()
         {
             ip2D.PushToStack(0);
-            CoreInstructions.LogicalNot.Execute(ip2D);
+            ip2D.DoOp('!');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(1)));
         }
 
@@ -85,7 +85,7 @@ internal partial class CoreInstructionsTests
         public void Not_PushesZero_ForNonZeroArgument(int n)
         {
             ip2D.PushToStack(n);
-            CoreInstructions.LogicalNot.Execute(ip2D);
+            ip2D.DoOp('!');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
         }
 
@@ -94,7 +94,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(5);
             ip2D.PushToStack(3);
-            CoreInstructions.GreaterThan.Execute(ip2D);
+            ip2D.DoOp('`');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(1)));
 
         }
@@ -104,12 +104,12 @@ internal partial class CoreInstructionsTests
         { 
             ip2D.PushToStack(3);
             ip2D.PushToStack(5);
-            CoreInstructions.GreaterThan.Execute(ip2D);
+            ip2D.DoOp('`');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
 
             ip2D.PushToStack(5);
             ip2D.PushToStack(5);
-            CoreInstructions.GreaterThan.Execute(ip2D);
+            ip2D.DoOp('`');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
         }
     }

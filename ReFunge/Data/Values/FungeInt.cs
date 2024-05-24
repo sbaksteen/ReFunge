@@ -2,7 +2,6 @@
 
 public readonly record struct FungeInt(int Value) : IFungeValue<FungeInt>
 {
-
     public static implicit operator FungeInt(int value) => new(value);
 
     public static implicit operator int(FungeInt me) => me.Value;

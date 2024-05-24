@@ -15,9 +15,9 @@ internal partial class CoreInstructionsTests
             writer.Write("42");
             writer.Flush();
             InputStream.Seek(0, SeekOrigin.Begin);
-            CoreInstructions.Input.Execute(ip1D);
+            ip1D.DoOp('~');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt('4')));
-            CoreInstructions.Input.Execute(ip1D);
+            ip1D.DoOp('~');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt('2')));
         }
             
@@ -25,7 +25,7 @@ internal partial class CoreInstructionsTests
         public void Input_Reflects_OnEndOfInput()
         {
             var d = ip1D.Delta;
-            CoreInstructions.Input.Execute(ip1D);
+            ip1D.DoOp('~');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
         }
             
@@ -36,7 +36,7 @@ internal partial class CoreInstructionsTests
             writer.Write("42");
             writer.Flush();
             InputStream.Seek(0, SeekOrigin.Begin);
-            CoreInstructions.InputInteger.Execute(ip1D);
+            ip1D.DoOp('&');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(42)));
         }
             
@@ -47,7 +47,7 @@ internal partial class CoreInstructionsTests
             writer.Write("not a number");
             writer.Flush();
             InputStream.Seek(0, SeekOrigin.Begin);
-            CoreInstructions.InputInteger.Execute(ip1D);
+            ip1D.DoOp('&');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt(0)));
         }
             
@@ -58,8 +58,8 @@ internal partial class CoreInstructionsTests
             writer.Write("not a number");
             writer.Flush();
             InputStream.Seek(0, SeekOrigin.Begin);
-            CoreInstructions.InputInteger.Execute(ip1D);
-            CoreInstructions.Input.Execute(ip1D);
+            ip1D.DoOp('&');
+            ip1D.DoOp('~');
             Assert.That(ip1D.PopFromStack(), Is.EqualTo(new FungeInt('n')));
         }
             
@@ -67,7 +67,7 @@ internal partial class CoreInstructionsTests
         public void InputInteger_Reflects_OnEndOfInput()
         {
             var d = ip1D.Delta;
-            CoreInstructions.InputInteger.Execute(ip1D);
+            ip1D.DoOp('&');
             Assert.That(ip1D.Delta, Is.EqualTo(-d));
         }
             
@@ -75,10 +75,10 @@ internal partial class CoreInstructionsTests
         public void Output_WritesCorrectValue()
         {
             ip1D.PushToStack('4');
-            CoreInstructions.Output.Execute(ip1D);
+            ip1D.DoOp(',');
             Assert.That(_output.ToString(), Is.EqualTo("4"));
             ip1D.PushToStack('2');
-            CoreInstructions.Output.Execute(ip1D);
+            ip1D.DoOp(',');
             Assert.That(_output.ToString(), Is.EqualTo("42"));
         }
             
@@ -86,7 +86,7 @@ internal partial class CoreInstructionsTests
         public void OutputInteger_WritesCorrectValue()
         {
             ip1D.PushToStack(42);
-            CoreInstructions.OutputInteger.Execute(ip1D);
+            ip1D.DoOp('.');
             Assert.That(_output.ToString(), Is.EqualTo("42 "));
         }
     }

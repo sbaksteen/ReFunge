@@ -1,6 +1,7 @@
 ﻿using ReFunge.Data.Values;
 using ReFunge.Semantics.Fingerprints;
 using System.Reflection;
+using ReFunge.Data;
 
 
 namespace ReFunge.Semantics;
@@ -9,68 +10,144 @@ using InstructionMap = Dictionary<FungeInt, FungeFunc>;
 
 public class InstructionRegistry
 {
-    private static readonly Lazy<InstructionRegistry> Lazy = new(() => new InstructionRegistry());
-
-    public static InstructionRegistry Instance => Lazy.Value;
-
-    private readonly InstructionMap _coreInstructions = [];
+    private Dictionary<FungeFunc, string> _instructionNames = [];
     
-    private readonly Dictionary<FungeFunc, string> _instructionNames = [];
+    private Interpreter _interpreter;
     
-    public static string NameOf(FungeFunc func)
+    public string NameOf(FungeFunc func)
     {
-        return Instance._instructionNames[func];
+        return _instructionNames[func];
     }
 
-    internal static InstructionMap CoreInstructions { get { return Instance._coreInstructions; } }
+    internal InstructionMap CoreInstructions { get; }
 
-    private readonly Dictionary<FungeInt, InstructionMap> _fingerprints = [];
-
-    public static void RegisterNewFingerprint(FungeString name, Type t)
-    {
-        Instance.RegisterFingerprint(name, t);
-    }
-
+    private readonly Dictionary<FungeInt, InstructionMap> _staticFingerprints = [];
+    
+    private readonly Dictionary<FungeInt, InstancedFingerprint> _interpreterFingerprints = [];
+    private readonly Dictionary<FungeInt, Type> _spaceFingerprints = [];
+    private readonly Dictionary<FungeInt, Type> _ipFingerprints = [];
+    
     private void RegisterFingerprint(FungeString name, Type t)
     {
-        _fingerprints[name.Handprint] = ReadFuncs(t, name);
+        if (t.GetCustomAttribute<FingerprintAttribute>() is not { } attribute)
+        {
+            throw new InvalidOperationException("Fingerprint must have a FingerprintAttribute");
+        }
+        switch (attribute.Type)
+        {
+            case FingerprintType.Static:
+                _staticFingerprints[name.Handprint] = ReadFuncs(t, name);
+                return;
+            case FingerprintType.InstancedPerInterpreter:
+                _interpreterFingerprints[name.Handprint] = (Activator.CreateInstance(t, [_interpreter]) as InstancedFingerprint)!;
+                return;
+            case FingerprintType.InstancedPerSpace:
+                _spaceFingerprints[name.Handprint] = t;
+                return;
+            case FingerprintType.InstancedPerIP:
+                _ipFingerprints[name.Handprint] = t;
+                return;
+            default:
+                throw new InvalidOperationException("Unknown fingerprint type");
+        }
+    }
+    
+    public FingerprintType TypeOf(FungeInt code)
+    {
+        if (_staticFingerprints.ContainsKey(code))
+        {
+            return FingerprintType.Static;
+        }
+        if (_interpreterFingerprints.ContainsKey(code))
+        {
+            return FingerprintType.InstancedPerInterpreter;
+        }
+        if (_spaceFingerprints.ContainsKey(code))
+        {
+            return FingerprintType.InstancedPerSpace;
+        }
+        if (_ipFingerprints.ContainsKey(code))
+        {
+            return FingerprintType.InstancedPerIP;
+        }
+
+        throw new ArgumentException($"Fingerprint {code} not found");
+    }
+    
+    public InstancedFingerprint NewInstance(FungeInt code, FungeIP ip)
+    {
+        if (_ipFingerprints[code] is not { } fingerprintType)
+            throw new ArgumentException($"Fingerprint {code} not found");
+        
+        return (Activator.CreateInstance(fingerprintType, [ip]) as InstancedFingerprint)!;
+    }
+    
+    public InstancedFingerprint NewInstance(FungeInt code, FungeSpace space)
+    {
+        if (_spaceFingerprints[code] is not { } fingerprintType)
+            throw new ArgumentException($"Fingerprint {code} not found");
+        
+        return (Activator.CreateInstance(fingerprintType, [space]) as InstancedFingerprint)!;
     }
 
-    public static InstructionMap GetFingerprint(FungeInt code)
+    public InstructionMap GetStaticFingerprint(FungeInt code)
     {
-        return Instance._fingerprints[code];
+        return _staticFingerprints[code];
     }
 
-    public static InstructionMap GetFingerprint(FungeString name)
+    public InstructionMap GetStaticFingerprint(FungeString name)
     {
-        return Instance._fingerprints[name.Handprint];
+        return _staticFingerprints[name.Handprint];
+    }
+    
+    public InstructionMap GetInterpreterFingerprint(FungeInt code)
+    {
+        return _interpreterFingerprints[code].Instructions;
+    }
+    
+    public InstructionMap GetInterpreterFingerprint(FungeString name)
+    {
+        return _interpreterFingerprints[name.Handprint].Instructions;
     }
 
     private InstructionMap ReadFuncs(Type t, string name)
     {
         InstructionMap r = [];
+        foreach (var method in t.GetMethods(BindingFlags.Static | BindingFlags.Public))
+        {
+            var attributes = (InstructionAttribute[])method.GetCustomAttributes(typeof(InstructionAttribute));
+            if (attributes.Length == 0) 
+                continue;
+            var func = FungeFunc.Create(method, null);
+            foreach (var attribute in attributes)
+            {
+                r[attribute.Instruction] = func;
+                _instructionNames[func] = $"{name}::{attribute.Instruction}";
+            }
+        }
         foreach (var f in t.GetFields(BindingFlags.Static | BindingFlags.Public))
         {
             var attributes = (InstructionAttribute[])f.GetCustomAttributes(typeof(InstructionAttribute));
             foreach (var attribute in attributes)
             {
-                if (f.GetValue(null) is FungeFunc func)
-                {
-                    r[attribute.Instruction] = func;
-                    _instructionNames[func] = $"{name}::{attribute.Instruction}";
-                }
+                if (f.GetValue(null) is not FungeFunc func) 
+                    continue;
+                r[attribute.Instruction] = func;
+                _instructionNames[func] = $"{name}::{attribute.Instruction}";
             }
         }
         return r;
     }
 
-    private InstructionRegistry() 
+    public InstructionRegistry(Interpreter interpreter) 
     {
-        _coreInstructions = ReadFuncs(typeof(CoreInstructions), "");
-        RegisterFingerprint("NULL", typeof(NULL));
-        RegisterFingerprint("ROMA", typeof(ROMA));
-        RegisterFingerprint("MODU", typeof(MODU));
-        RegisterFingerprint("MODE", typeof(MODE));
-        RegisterFingerprint("HRTI", typeof(HRTI));
+        CoreInstructions = ReadFuncs(typeof(CoreInstructions), "");
+        foreach (var t in GetType().Assembly.GetTypes())
+        {
+            if (t.GetCustomAttribute<FingerprintAttribute>() is not { } attribute)
+                continue;
+            RegisterFingerprint(attribute.Name, t);
+        }
+        _interpreter = interpreter;
     }
 }

@@ -120,4 +120,25 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
 
     public override string ToString() => 
         "V[" + string.Join(", ", _values) + "]";
+
+    public FungeVector SetCoordinate(int i, FungeInt fungeInt)
+    {
+        var result = new int[Math.Max(i + 1, _values.Count)];
+        for (var j = 0; j < _values.Count; j++)
+        {
+            result[j] = _values[j];
+        }
+        result[i] = fungeInt;
+        return new FungeVector(result);
+    }
+
+    public FungeVector Reverse()
+    {
+        var result = new int[_values.Count];
+        for (var i = 0; i < _values.Count; i++)
+        {
+            result[i] = _values[_values.Count - i - 1];
+        }
+        return new FungeVector(result);
+    }
 }

@@ -13,11 +13,10 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(new FungeString("NULL").Handprint);
             ip2D.PushToStack(1);
-            CoreInstructions.LoadFingerprint.Execute(ip2D);
+            ip2D.DoOp('(');
             foreach (var stack in ip2D.FingerprintStacks)
             {
                 Assert.That(stack, Has.Count.EqualTo(1));
-                Assert.That(stack.Peek(), Is.EqualTo(NULL.Reflect));
             }
         }
 
@@ -26,7 +25,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(0);
             ip2D.PushToStack(1);
-            CoreInstructions.LoadFingerprint.Execute(ip2D);
+            ip2D.DoOp('(');
             // Fingerprint 0 doesn't exist...
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(-1, 0)));
             foreach (var stack in ip2D.FingerprintStacks)
@@ -40,7 +39,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(new FungeString("ROMA").Handprint);
             ip2D.PushToStack(1);
-            CoreInstructions.LoadFingerprint.Execute(ip2D);
+            ip2D.DoOp('(');
             Assert.That(ip2D.FingerprintStacks['I' - 'A'], Has.Count.EqualTo(1));
             Assert.That(ip2D.FingerprintStacks['V' - 'A'], Has.Count.EqualTo(1));
             Assert.That(ip2D.FingerprintStacks['X' - 'A'], Has.Count.EqualTo(1));
@@ -56,7 +55,7 @@ internal partial class CoreInstructionsTests
         {
             ip2D.PushToStack(new FungeString("ROMA").Handprint);
             ip2D.PushToStack(1);
-            CoreInstructions.LoadFingerprint.Execute(ip2D);
+            ip2D.DoOp('(');
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(1)));
             Assert.That(ip2D.PopFromStack(), Is.EqualTo(new FungeInt(new FungeString("ROMA").Handprint)));
         }
@@ -67,7 +66,7 @@ internal partial class CoreInstructionsTests
             ip2D.LoadFingerprint(new FungeString("NULL").Handprint);
             ip2D.PushToStack(new FungeString("NULL").Handprint);
             ip2D.PushToStack(1);
-            CoreInstructions.UnloadFingerprint.Execute(ip2D);
+            ip2D.DoOp(')');
             foreach (var stack in ip2D.FingerprintStacks)
             {
                 Assert.That(stack, Is.Empty);
@@ -81,7 +80,7 @@ internal partial class CoreInstructionsTests
             ip2D.LoadFingerprint(new FungeString("NULL").Handprint);
             ip2D.PushToStack(0);
             ip2D.PushToStack(1);
-            CoreInstructions.UnloadFingerprint.Execute(ip2D);
+            ip2D.DoOp(')');
             // Fingerprint 0 doesn't exist...
             Assert.That(ip2D.Delta, Is.EqualTo(new FungeVector(-1, 0)));
             foreach (var stack in ip2D.FingerprintStacks)
@@ -96,7 +95,7 @@ internal partial class CoreInstructionsTests
             ip2D.LoadFingerprint(new FungeString("NULL").Handprint);
             ip2D.PushToStack(new FungeString("ROMA").Handprint);
             ip2D.PushToStack(1);
-            CoreInstructions.UnloadFingerprint.Execute(ip2D);
+            ip2D.DoOp(')');
             Assert.That(ip2D.FingerprintStacks['I' - 'A'], Is.Empty);
             Assert.That(ip2D.FingerprintStacks['V' - 'A'], Is.Empty);
             Assert.That(ip2D.FingerprintStacks['X' - 'A'], Is.Empty);
