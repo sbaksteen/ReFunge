@@ -60,80 +60,56 @@ internal static class CoreInstructions
     public static readonly FungeFunc GoUp = 
         new FungeAction(ip =>
         {
-            if (ip.Dim > 1)
+            if (ip.Dim < 2) throw new FungeReflectException();
+            if (ip.HoverMode)
             {
-                if (ip.HoverMode)
-                {
-                    ip.Delta += FungeVector.Up;
-                }
-                else
-                {
-                    ip.Delta = FungeVector.Up;
-                }
+                ip.Delta += FungeVector.Up;
             }
             else
             {
-                ip.Reflect();
+                ip.Delta = FungeVector.Up;
             }
         });
     [Instruction('v')]
     public static readonly FungeFunc GoDown = 
         new FungeAction(ip =>
         {
-            if (ip.Dim > 1)
+            if (ip.Dim < 2) throw new FungeReflectException();
+            if (ip.HoverMode)
             {
-                if (ip.HoverMode)
-                {
-                    ip.Delta += FungeVector.Down;
-                }
-                else
-                {
-                    ip.Delta = FungeVector.Down;
-                }
+                ip.Delta += FungeVector.Down;
             }
             else
             {
-                ip.Reflect();
+                ip.Delta = FungeVector.Down;
             }
         });
     [Instruction('h')]
     public static readonly FungeFunc GoForwards = 
         new FungeAction(ip =>
         {
-            if (ip.Dim > 2)
+            if (ip.Dim < 3) throw new FungeReflectException();
+            if (ip.HoverMode)
             {
-                if (ip.HoverMode)
-                {
-                    ip.Delta += FungeVector.Forwards;
-                }
-                else
-                {
-                    ip.Delta = FungeVector.Forwards;
-                }
+                ip.Delta += FungeVector.Forwards;
             }
             else
             {
-                ip.Reflect();
+                ip.Delta = FungeVector.Forwards;
             }
         });
     [Instruction('l')]
     public static readonly FungeFunc GoBackwards = 
         new FungeAction(ip =>
         {
-            if (ip.Dim > 2)
+            if (ip.Dim < 3) throw new FungeReflectException();
+            if (ip.HoverMode)
             {
-                if (ip.HoverMode)
-                {
-                    ip.Delta += FungeVector.Backwards;
-                }
-                else
-                {
-                    ip.Delta = FungeVector.Backwards;
-                }
+                ip.Delta += FungeVector.Backwards;
             }
             else
             {
-                ip.Reflect();
+                ip.Delta = FungeVector.Backwards;
             }
         });
 
@@ -151,11 +127,7 @@ internal static class CoreInstructions
     public static readonly FungeFunc DecideVertical = 
         new FungeAction<FungeInt>((ip, v) =>
         {
-            if (ip.Dim < 2)
-            {
-                ip.Reflect();
-                return;
-            }
+            if (ip.Dim < 2) throw new FungeReflectException();
 
             if (v == 0) 
                 GoDown.Execute(ip);
@@ -167,11 +139,7 @@ internal static class CoreInstructions
     public static readonly FungeFunc DecideForwards = 
         new FungeAction<FungeInt>((ip, v) =>
         {
-            if (ip.Dim < 3)
-            {
-                ip.Reflect();
-                return;
-            }
+            if (ip.Dim < 3) throw new FungeReflectException();
 
             if (v == 0)
                 GoBackwards.Execute(ip);
@@ -198,8 +166,7 @@ internal static class CoreInstructions
             switch (ip.Dim)
             {
                 case < 2:
-                    ip.Reflect();
-                    return;
+                    throw new FungeReflectException();
                 case <= 2:
                     ip.Delta = new FungeVector(-ip.Delta[1], ip.Delta[0]);
                     return;
@@ -223,8 +190,7 @@ internal static class CoreInstructions
             switch (ip.Dim)
             {
                 case < 2:
-                    ip.Reflect();
-                    return;
+                    throw new FungeReflectException();
                 case <= 2:
                     ip.Delta = new FungeVector(ip.Delta[1], -ip.Delta[0]);
                     return;
@@ -346,14 +312,13 @@ internal static class CoreInstructions
 
     [Instruction('~')]
     public static readonly FungeFunc Input = 
-        new FungeAction(ip =>
+        new FungeFunc<FungeInt>(ip =>
         {
             if (ip.Interpreter.EndOfInput())
             {
-                ip.Reflect();
-                return ;
+                throw new FungeReflectException(new InvalidOperationException("End of input reached."));
             }
-            ip.PushToStack(ip.Interpreter.ReadCharacter());
+            return ip.Interpreter.ReadCharacter();
         });
     [Instruction(',')]
     public static readonly FungeFunc Output = 
@@ -361,14 +326,13 @@ internal static class CoreInstructions
 
     [Instruction('&')]
     public static readonly FungeFunc InputInteger = 
-        new FungeAction(ip =>
+        new FungeFunc<FungeInt>(ip =>
         {
             if (ip.Interpreter.EndOfInput())
             {
-                ip.Reflect();
-                return;
+                throw new FungeReflectException(new InvalidOperationException("End of input reached."));
             }
-            ip.PushToStack(ip.Interpreter.ReadInteger());
+            return ip.Interpreter.ReadInteger();
         });
     [Instruction('.')]
     public static readonly FungeFunc OutputInteger = 
@@ -379,8 +343,7 @@ internal static class CoreInstructions
         new FungeAction<FungeVector, FungeInt, FungeString>((ip, pos, flags, filename) =>
         {
             var size = ip.ReadFileIntoSpace(pos, filename, (flags & 1) != 0);
-            if (!size.HasValue) return;
-            ip.PushVectorToStack(size.Value);
+            ip.PushVectorToStack(size);
             ip.PushVectorToStack(pos);
         });
 
@@ -568,8 +531,7 @@ internal static class CoreInstructions
             if (ip.SwitchMode) ip.Space[ip.Position] = '{';
             if (ip.StackStack.Size == 1)
             {
-                ip.Reflect();
-                return;
+                throw new FungeReflectException(new InvalidOperationException("}: No SOSS."));
             }
             ip.StorageOffset = ip.PopVectorFromSOSS();
             if (n > 0)
@@ -597,8 +559,7 @@ internal static class CoreInstructions
         {
             if (ip.StackStack.Size == 1)
             {
-                ip.Reflect();
-                return;
+                throw new FungeReflectException(new InvalidOperationException("u: No SOSS."));
             }
             for (var i = 0; i < count; i++)
             {
@@ -637,9 +598,9 @@ internal static class CoreInstructions
                 ip.LoadFingerprint(code);
                 ip.PushToStack(code);
                 ip.PushToStack(1);
-            } catch (KeyNotFoundException)
+            } catch (KeyNotFoundException e)
             {
-                ip.Reflect();
+                throw new FungeReflectException(e);
             }
         });
 
@@ -657,9 +618,9 @@ internal static class CoreInstructions
             {
                 ip.UnloadFingerprint(code);
             }
-            catch (KeyNotFoundException)
+            catch (KeyNotFoundException e)
             {
-                ip.Reflect();
+                throw new FungeReflectException(e);
             }
         });
 

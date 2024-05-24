@@ -7,22 +7,38 @@ public abstract class FungeFunc
     public abstract void Execute(FungeIP ip);
 }
 
+public class FungeReflectException(Exception? e = null) : Exception(e?.Message, e);
+
 internal class FungeFunc<TResult>(Func<FungeIP, TResult> func) : FungeFunc 
     where TResult : IFungeValue<TResult>
 {
     public override void Execute(FungeIP ip)
     {
+        try
+        {
             var result = func(ip);
             result.PushToStack(ip);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeAction(Action<FungeIP> action) : FungeFunc
 {
     public override void Execute(FungeIP ip)
     {
+        try
+        {
             action(ip);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeFunc<T1, TResult>(Func<FungeIP, T1, TResult> func) : FungeFunc 
@@ -31,10 +47,17 @@ internal class FungeFunc<T1, TResult>(Func<FungeIP, T1, TResult> func) : FungeFu
 {
     public override void Execute(FungeIP ip)
     {
-            var arg1 = T1.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             var result = func(ip, arg1);
             result.PushToStack(ip);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeAction<T1>(Action<FungeIP, T1> action) : FungeFunc 
@@ -42,9 +65,16 @@ internal class FungeAction<T1>(Action<FungeIP, T1> action) : FungeFunc
 {
     public override void Execute(FungeIP ip)
     {
-            var arg1 = T1.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             action(ip, arg1);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeFunc<T1, T2, TResult>(Func<FungeIP, T1, T2, TResult> func) : FungeFunc 
@@ -53,11 +83,18 @@ internal class FungeFunc<T1, T2, TResult>(Func<FungeIP, T1, T2, TResult> func) :
 {
     public override void Execute(FungeIP ip)
     {
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             var result = func(ip, arg1, arg2);
             result.PushToStack(ip);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeAction<T1, T2>(Action<FungeIP, T1, T2> action) : FungeFunc 
@@ -65,10 +102,17 @@ internal class FungeAction<T1, T2>(Action<FungeIP, T1, T2> action) : FungeFunc
 {
     public override void Execute(FungeIP ip)
     {
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             action(ip, arg1, arg2);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeFunc<T1, T2, T3, TResult>(Func<FungeIP, T1, T2, T3, TResult> func) : FungeFunc 
@@ -77,12 +121,19 @@ internal class FungeFunc<T1, T2, T3, TResult>(Func<FungeIP, T1, T2, T3, TResult>
 {
     public override void Execute(FungeIP ip)
     {
-            var arg3 = T3.PopFromStack(ip);
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg3 = T3.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             var result = func(ip, arg1, arg2, arg3);
             result.PushToStack(ip);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeAction<T1, T2, T3>(Action<FungeIP, T1, T2, T3> action) : FungeFunc 
@@ -90,11 +141,18 @@ internal class FungeAction<T1, T2, T3>(Action<FungeIP, T1, T2, T3> action) : Fun
 {
     public override void Execute(FungeIP ip)
     {
-            var arg3 = T3.PopFromStack(ip);
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg3 = T3.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             action(ip, arg1, arg2, arg3);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeFunc<T1, T2, T3, T4, TResult>(Func<FungeIP, T1, T2, T3, T4, TResult> func) : FungeFunc 
@@ -103,13 +161,20 @@ internal class FungeFunc<T1, T2, T3, T4, TResult>(Func<FungeIP, T1, T2, T3, T4, 
 {
     public override void Execute(FungeIP ip)
     {
-            var arg4 = T4.PopFromStack(ip);
-            var arg3 = T3.PopFromStack(ip);
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg4 = T4.PopFromStack(ip);
+        var arg3 = T3.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             var result = func(ip, arg1, arg2, arg3, arg4);
             result.PushToStack(ip);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeAction<T1, T2, T3, T4>(Action<FungeIP, T1, T2, T3, T4> action) : FungeFunc 
@@ -118,12 +183,19 @@ internal class FungeAction<T1, T2, T3, T4>(Action<FungeIP, T1, T2, T3, T4> actio
 
     public override void Execute(FungeIP ip)
     {
-            var arg4 = T4.PopFromStack(ip);
-            var arg3 = T3.PopFromStack(ip);
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg4 = T4.PopFromStack(ip);
+        var arg3 = T3.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             action(ip, arg1, arg2, arg3, arg4);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeFunc<T1, T2, T3, T4, T5, TResult>(Func<FungeIP, T1, T2, T3, T4, T5, TResult> func) : FungeFunc 
@@ -133,14 +205,21 @@ internal class FungeFunc<T1, T2, T3, T4, T5, TResult>(Func<FungeIP, T1, T2, T3, 
 
     public override void Execute(FungeIP ip)
     {
-            var arg5 = T5.PopFromStack(ip);
-            var arg4 = T4.PopFromStack(ip);
-            var arg3 = T3.PopFromStack(ip);
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg5 = T5.PopFromStack(ip);
+        var arg4 = T4.PopFromStack(ip);
+        var arg3 = T3.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             var result = func(ip, arg1, arg2, arg3, arg4, arg5);
             result.PushToStack(ip);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }
 
 internal class FungeAction<T1, T2, T3, T4, T5>(Action<FungeIP, T1, T2, T3, T4, T5> action) : FungeFunc 
@@ -148,11 +227,18 @@ internal class FungeAction<T1, T2, T3, T4, T5>(Action<FungeIP, T1, T2, T3, T4, T
 {
     public override void Execute(FungeIP ip)
     {
-            var arg5 = T5.PopFromStack(ip);
-            var arg4 = T4.PopFromStack(ip);
-            var arg3 = T3.PopFromStack(ip);
-            var arg2 = T2.PopFromStack(ip);
-            var arg1 = T1.PopFromStack(ip);
+        var arg5 = T5.PopFromStack(ip);
+        var arg4 = T4.PopFromStack(ip);
+        var arg3 = T3.PopFromStack(ip);
+        var arg2 = T2.PopFromStack(ip);
+        var arg1 = T1.PopFromStack(ip);
+        try
+        {
             action(ip, arg1, arg2, arg3, arg4, arg5);
         }
+        catch (FungeReflectException)
+        {
+            ip.Reflect();
+        }
+    }
 }

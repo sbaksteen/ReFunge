@@ -61,16 +61,18 @@ public class MycologyTestSuite
             Console.Out.WriteLine(bfOutput.ToString());
             Assert.Fail("Interpreter timed out");
         }
-        var output = bfOutput.ToString().Split("\n");
+        var output = bfOutput.ToString();
+        var outputSplit = output.Split("\n");
+        File.WriteAllText("mycology.out", output);
         var bads = 0;
-        foreach (var line in output)
+        foreach (var line in outputSplit)
         {
             if (line.Contains("UNDEF:"))
             {
                 Console.Out.WriteLine(line);
             }
         }
-        foreach (var line in output)
+        foreach (var line in outputSplit)
         {
             if (line.Contains("BAD:"))
             {

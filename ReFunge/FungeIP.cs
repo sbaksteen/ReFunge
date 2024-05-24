@@ -310,15 +310,14 @@ public class FungeIP
         return Space[pos + StorageOffset];
     }
 
-    internal FungeVector? ReadFileIntoSpace(FungeVector pos, string path, bool binary = false) {
+    internal FungeVector ReadFileIntoSpace(FungeVector pos, string path, bool binary = false) {
         try
         {
             return Space.LoadFile(pos + StorageOffset, path, binary);
         }
         catch (Exception)
         {
-            Reflect();
-            return null;
+            throw new FungeReflectException();
         }
     }
 
