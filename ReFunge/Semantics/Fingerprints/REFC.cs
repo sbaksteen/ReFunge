@@ -6,6 +6,7 @@ namespace ReFunge.Semantics.Fingerprints;
 public class REFC : InstancedFingerprint
 {
     // REFC: Store references to vectors.
+    // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/REFC.markdown)
     
     private List<FungeVector> _vectors = new();
 

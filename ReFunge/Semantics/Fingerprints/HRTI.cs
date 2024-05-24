@@ -8,6 +8,8 @@ public class HRTI : InstancedFingerprint
 {
     // HRTI: High Resolution Timer Interface
     // Provides access to high resolution timers for measuring time intervals
+    // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/HRTI.markdown)
+    
     private Stopwatch? _timer;
     
     private static int MicrosPerTick => int.Max(1,(int)(1000000/Stopwatch.Frequency));

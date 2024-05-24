@@ -7,6 +7,7 @@ internal static class MODU
 {
     // MODU: Modulo arithmetic extension
     // Implements different modulo behaviors found in various languages
+    // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/MODU.markdown)
 
     [Instruction('M')] 
     public static FungeInt SignedResultModulo(FungeIP _, FungeInt a, FungeInt b) =>

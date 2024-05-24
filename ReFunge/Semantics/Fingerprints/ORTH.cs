@@ -5,7 +5,8 @@ namespace ReFunge.Semantics.Fingerprints;
 [Fingerprint("ORTH")]
 public static class ORTH
 {
-    // ORTH: Instructions from the Orthogonal programming language
+    // ORTH: Instructions from the Orthogonal programming language.
+    // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/ORTH.markdown)
     
     [Instruction('A')]
     public static FungeInt BitwiseAnd(FungeIP _, FungeInt a, FungeInt b)

@@ -23,6 +23,16 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
         }
     }
 
+    public int[] ToArray(int size)
+    {
+        var result = new int[size];
+        for (var i = 0; i < _values.Count; i++)
+        {
+            result[i] = _values[i];
+        }
+        return result;
+    }
+
     public FungeVector(params int[] values) => _values = values.ToImmutableList();
 
     public FungeVector(ImmutableList<int> values) => _values = values;
