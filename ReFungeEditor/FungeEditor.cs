@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Principal;
 using System.Text;
+using FontStashSharp;
 using ImGuiNET;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -22,7 +23,7 @@ public class FungeEditor : Game
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
 
-    private SpriteFont _font;
+    private DynamicSpriteFont _font;
     
     private Interpreter _interpreter;
     
@@ -33,7 +34,7 @@ public class FungeEditor : Game
 
     private double _scale = 0.2;
 
-    private Point _topLeftPoint = Point.Zero;
+    private Point _topLeftAdjust = Point.Zero;
     
     private Color _backgroundColor = Color.Black;
     private Color _textColor = Color.White;
@@ -41,6 +42,7 @@ public class FungeEditor : Game
     private Color _ipColor = Color.Blue;
     
     private int _scrollValue;
+    private float _fontSize = 20;
     
     private FungeVector _cursor = new();
     private FungeVector _topLeft = new();
@@ -89,6 +91,7 @@ public class FungeEditor : Game
     private bool _loading;
     private int _customDim;
     private bool _newSpace;
+    private FontSystem _fontSystem;
 
     public FungeEditor()
     {
@@ -263,8 +266,11 @@ public class FungeEditor : Game
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-        _font = Content.Load<SpriteFont>("JetBrainsMonoNL");
-        _charSize = _font.MeasureString("M").ToPoint();
+        _fontSystem = new FontStashSharp.FontSystem();
+        _fontSystem.AddFont(File.ReadAllBytes(@"Content/JetBrainsMonoNL-Regular.ttf"));
+        _font = _fontSystem.GetFont(_fontSize);
+        int x = (int)float.Round(_font.MeasureString("M").X);
+        _charSize = new Point(x, _font.LineHeight);
         _topLeft = _cursor - RightDirection * (Window.ClientBounds.Size.X/_charSize.X/2) -
                    DownDirection * (Window.ClientBounds.Size.Y/_charSize.Y/2);
     }
@@ -370,7 +376,11 @@ public class FungeEditor : Game
 
     private void HandleMouseInput()
     {
-        if (ImGuiHasMouse || !IsActive) return;
+        if (ImGuiHasMouse || !IsActive)
+        {
+            _scrollValue = Mouse.GetState().ScrollWheelValue;
+            return;
+        }
         if (Mouse.GetState().Position.X > Window.ClientBounds.Size.X || Mouse.GetState().Position.Y > Window.ClientBounds.Size.Y
             || Mouse.GetState().Position.X < 0 || Mouse.GetState().Position.Y < 0)
         {
@@ -379,7 +389,7 @@ public class FungeEditor : Game
 
         if (Mouse.GetState().LeftButton == ButtonState.Pressed)
         {
-            var pos = (Mouse.GetState().Position + _topLeftPoint) / _charSize;
+            var pos = (Mouse.GetState().Position + _topLeftAdjust) / _charSize;
             _cursor = _topLeft + RightDirection * pos.X + DownDirection * pos.Y;
         }
         
@@ -394,17 +404,17 @@ public class FungeEditor : Game
             {
                 var newPos = Mouse.GetState().Position;
                 var delta = newPos - _dragPos;
-                _topLeftPoint -= delta;
-                if (_topLeftPoint.X < 0 || _topLeftPoint.Y < 0 || 
-                    _topLeftPoint.X >= _charSize.X || _topLeftPoint.Y >= _charSize.Y)
+                _topLeftAdjust -= delta;
+                if (_topLeftAdjust.X < 0 || _topLeftAdjust.Y < 0 || 
+                    _topLeftAdjust.X >= _charSize.X || _topLeftAdjust.Y >= _charSize.Y)
                 {
-                    var adjustPoint = _topLeftPoint / _charSize;
-                    if (_topLeftPoint.X < 0) adjustPoint.X--;
-                    if (_topLeftPoint.Y < 0) adjustPoint.Y--;
+                    var adjustPoint = _topLeftAdjust / _charSize;
+                    if (_topLeftAdjust.X < 0) adjustPoint.X--;
+                    if (_topLeftAdjust.Y < 0) adjustPoint.Y--;
                     var rightDirection = FungeVector.Cardinal(int.Abs(_rightDim)-1, int.Sign(_rightDim));
                     var downDirection = FungeVector.Cardinal(int.Abs(_downDim)-1, int.Sign(_downDim));
                     _topLeft += rightDirection * adjustPoint.X + downDirection * adjustPoint.Y;
-                    _topLeftPoint -= adjustPoint * _charSize;
+                    _topLeftAdjust -= adjustPoint * _charSize;
                 }
                 _dragPos = newPos;
             }
@@ -413,6 +423,17 @@ public class FungeEditor : Game
         if (Mouse.GetState().RightButton == ButtonState.Released)
         {
             _dragging = false;
+        }
+
+        if (Mouse.GetState().ScrollWheelValue != _scrollValue)
+        {
+            var delta = Mouse.GetState().ScrollWheelValue - _scrollValue;
+            _scrollValue += delta;
+            var adjustFactor = delta > 0 ? 1.1f : 1 / 1.1f;
+            _fontSize *= adjustFactor;
+            _font = _fontSystem.GetFont(_fontSize);
+            int x = (int)float.Round(_font.MeasureString("M").X);
+            _charSize = new Point(x, _font.LineHeight);
         }
     }
 
@@ -725,11 +746,11 @@ public class FungeEditor : Game
                 try
                 {
                     _spriteBatch.DrawString(_font, c.ToString(),
-                        (new Point(x, y) * _charSize - _topLeftPoint).ToVector2(), _textColor);
+                        (new Point(x, y) * _charSize - _topLeftAdjust).ToVector2(), _textColor);
                 }
                 catch (ArgumentException e)
                 {
-                    _spriteBatch.DrawString(_font, "?", (new Point(x, y) * _charSize - _topLeftPoint).ToVector2(), Color.Red);
+                    _spriteBatch.DrawString(_font, "?", (new Point(x, y) * _charSize - _topLeftAdjust).ToVector2(), Color.Red);
                 }
             }
         }
@@ -747,12 +768,12 @@ public class FungeEditor : Game
             if (ip.Position == _cursor)
             {
                 cursorDrawn = true;
-                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), (1-_cursorBlink) * _ipColor);
-                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
+                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftAdjust, _charSize), (1-_cursorBlink) * _ipColor);
+                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftAdjust, _charSize), _cursorBlink * _cursorColor);
                 continue;
             }
 
-            _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _ipColor);
+            _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftAdjust, _charSize), _ipColor);
         }
 
         if (!cursorDrawn)
@@ -761,7 +782,7 @@ public class FungeEditor : Game
             var down = int.Sign(_downDim) * (_cursor[int.Abs(_downDim)-1] - _topLeft[int.Abs(_downDim)-1]);
             if (right >= 0 && right < end.X && down >= 0 && down < end.Y)
             {
-                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftPoint, _charSize), _cursorBlink * _cursorColor);
+                _spriteBatch.Draw(ipTexture, new Rectangle(new Point(right, down) * _charSize - _topLeftAdjust, _charSize), _cursorBlink * _cursorColor);
             }
         }
     }
