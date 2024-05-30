@@ -4,7 +4,7 @@ using ReFunge.Data.Values;
 
 namespace ReFunge.Semantics.Fingerprints;
 
-using InstructionMap = Dictionary<FungeInt, FungeFunc>;
+using InstructionMap = Dictionary<FungeInt, FungeInstruction>;
 public abstract class InstancedFingerprint
 {
     private FungeIP? _ip;
@@ -17,7 +17,7 @@ public abstract class InstancedFingerprint
 
     public InstructionMap Instructions { get; } = [];
 
-    public FungeFunc this[FungeInt instruction] => Instructions[instruction];
+    public FungeInstruction this[FungeInt instruction] => Instructions[instruction];
     
     public string Name { get; }
     
@@ -41,7 +41,8 @@ public abstract class InstancedFingerprint
             var func = FungeFunc.Create(method, this);
             foreach (var attribute in attributes)
             {
-                Instructions[attribute.Instruction] = func;
+                Instructions[attribute.Instruction] = new FungeInstruction(func, Name + "::" + attribute.Instruction, GetType(),
+                    new FungeString(fingerprintAttribute.Name).Handprint);
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+﻿using System.Reflection;
+using System.Runtime.InteropServices.JavaScript;
 using ReFunge.Data;
 using ReFunge.Data.Values;
 using ReFunge.Semantics;
@@ -6,7 +7,7 @@ using ReFunge.Semantics.Fingerprints;
 
 namespace ReFunge;
 
-using InstructionMap = Dictionary<FungeInt, FungeFunc>;
+using InstructionMap = Dictionary<FungeInt, FungeInstruction>;
 
 /// <summary>
 /// Represents any of various modes an IP can be in. These modes can be independently active. <seealso cref="MODE"/>
@@ -53,34 +54,48 @@ public enum IPModes
 }
 
 /// <summary>
-/// An IP (instruction pointer) which lives in a <c>FungeSpace</c>. It can execute instructions in the space and
+/// An IP (instruction pointer) which lives in a <see cref="FungeSpace"/>. It can execute instructions in the space and
 /// interact with the interpreter's global functionality.
 /// </summary>
 public class FungeIP
 {
 
+    /// <summary>
+    /// The position of the IP in the space.
+    /// </summary>
+    public FungeVector Position = new();
     
+    /// <summary>
+    /// The storage offset of the IP. This is added to all positions the IP reads from or writes to using the
+    /// <see cref="Get"/> and <see cref="Put"/> methods.
+    /// </summary>
+    public FungeVector StorageOffset = new();
+    
+    /// <summary>
+    /// The delta of the IP. This is the direction the IP will move in every tick after executing an instruction.
+    /// </summary>
+    public FungeVector Delta = FungeVector.Right;
 
     /// <summary>
-    /// The IP's dimensionality. This defines how the IP sees the world, and how it pushes and pops <c>FungeVectors</c>
-    /// on its stack.
+    /// The IP's dimensionality. This defines how the IP sees the world, and how it pushes and pops
+    /// <see cref="FungeVector"/>s on its stack.
     /// </summary>
-    public int Dim { get; set; }
+    public int Dim { get; private set; }
     
     /// <summary>
     /// The space the IP currently lives in.
     /// </summary>
-    public FungeSpace Space { get; set; }
+    public FungeSpace Space { get; private set; }
     
     /// <summary>
     /// The stack-stack associated with the IP.
     /// </summary>
-    public FungeStackStack StackStack { get; set; }
+    public FungeStackStack StackStack { get; private init; }
 
     /// <summary>
     /// The interpreter this IP is bound to.
     /// </summary>
-    public Interpreter Interpreter { get; set; }
+    public Interpreter Interpreter { get; private init; }
 
     /// <summary>
     /// This determines whether the IP is dead or alive. If an IP is dead, it will not execute instructions, and
@@ -92,20 +107,38 @@ public class FungeIP
     /// If this value is set during execution, the interpreter will immediately stop running after the IP's "turn" is
     /// over.
     /// </summary>
-    public bool RequestQuit { get; set; } = false;
+    internal bool RequestQuit { get; set; } = false;
     
     /// <summary>
     /// This flags enum determines whether the IP is in any number of modes. See <see cref="IPModes"/> for an overview.
     /// </summary>
     private IPModes Modes { get; set; } = IPModes.None;
     
-    private Dictionary<FungeInt, InstancedFingerprint> _instancedFingerprints = new();
+    /// <summary>
+    /// Stores all instanced fingerprints defined for this IP. <seealso cref="FingerprintType.InstancedPerIP"/>
+    /// </summary>
+    /// <remarks>
+    /// For an example of an instanced fingerprint, see <see cref="HRTI"/>.
+    /// </remarks>
+    private readonly Dictionary<FungeInt, InstancedFingerprint> _instancedFingerprints = new();
 
+    /// <summary>
+    /// Toggles the given modes on or off.
+    /// </summary>
+    /// <param name="modes">The modes to toggle.</param>
     public void ToggleModes(IPModes modes)
     {
         Modes ^= modes;
     }
 
+    /// <summary>
+    /// Determines whether the IP is in string mode.
+    /// </summary>
+    /// <remarks>
+    /// In string mode, instead of executing instructions,
+    /// the IP pushes the values of each cell until it encounters a cell with the value &quot;.
+    /// <seealso cref="IPModes"/>
+    /// </remarks>
     public bool StringMode
     {
         get => Modes.HasFlag(IPModes.StringMode);
@@ -122,6 +155,14 @@ public class FungeIP
         }
     }
     
+    /// <summary>
+    /// Determines whether the IP is in hover mode.
+    /// </summary>
+    /// <remarks>
+    /// In hover mode, the directional instructions &lt;&gt;^vhl and _|m
+    /// all add to the IP's delta instead of setting it.
+    /// <seealso cref="IPModes"/>
+    /// </remarks>
     public bool HoverMode
     {
         get => Modes.HasFlag(IPModes.HoverMode);
@@ -138,6 +179,14 @@ public class FungeIP
         }
     }
     
+    /// <summary>
+    /// Determines whether the IP is in invert mode.
+    /// </summary>
+    /// <remarks>
+    /// In invert mode, the IP always pushes to the bottom of any
+    /// <see cref="FungeStack"/>s. This does not affect pushing new stacks to a <see cref="FungeStackStack"/>.
+    /// <seealso cref="IPModes"/>
+    /// </remarks>
     public bool InvertMode
     {
         get => Modes.HasFlag(IPModes.InvertMode);
@@ -154,6 +203,14 @@ public class FungeIP
         }
     }
     
+    /// <summary>
+    /// Determines whether the IP is in queue mode.
+    /// </summary>
+    /// <remarks>
+    /// In queue mode, the IP always pops from the bottom of any
+    /// <see cref="FungeStack"/>s. This does not affect popping stacks from a <see cref="FungeStackStack"/>.
+    /// <seealso cref="IPModes"/>
+    /// </remarks>
     public bool QueueMode
     {
         get => Modes.HasFlag(IPModes.QueueMode);
@@ -170,6 +227,15 @@ public class FungeIP
         }
     }
     
+    /// <summary>
+    /// Determines whether the IP is in switch mode.
+    /// </summary>
+    /// <remarks>In switch mode, the instructions [](){} all cause the cell at the
+    /// IP's current position to turn into the opposite bracket in addition to their usual effects.
+    /// For example, with the IP in switch mode, the [ instruction will set the cell at the IP's current position to ]
+    /// and also turn left.
+    /// <seealso cref="IPModes"/>
+    /// </remarks>
     public bool SwitchMode
     {
         get => Modes.HasFlag(IPModes.SwitchMode);
@@ -187,18 +253,38 @@ public class FungeIP
     }
 
 
-    public FungeVector Position = new();
-    public FungeVector StorageOffset = new();
-    public FungeVector Delta = FungeVector.Right;
-    
+    /// <summary>
+    /// The registry of instructions available to the interpreter.
+    /// </summary>
     private InstructionRegistry InstructionRegistry => Interpreter.InstructionRegistry;
 
-    internal InstructionMap Functions { get; set; }
+    /// <summary>
+    /// The set of non-fingerprint instructions available to the IP.
+    /// </summary>
+    private InstructionMap Functions { get; set; }
 
-    public Stack<FungeFunc>[] FingerprintStacks { get; } = new Stack<FungeFunc>[26];
+    /// <summary>
+    /// The fingerprint stacks of the IP. <br />
+    /// Each stack is associated with a value 'A'-'Z'. The top instruction on each
+    /// stack is executed when the IP encounters a command with the corresponding value. <br />
+    /// Here, the stacks are stored in an array, where the index is the value minus 'A'.
+    /// <seealso cref="LoadFingerprint"/> <seealso cref="UnloadFingerprint"/>
+    /// </summary>
+    public Stack<FungeInstruction>[] FingerprintStacks { get; } = new Stack<FungeInstruction>[26];
 
+    /// <summary>
+    /// A unique identifier for the IP.
+    /// </summary>
     public FungeInt ID { get; }
 
+    /// <summary>
+    /// Creates a new IP with the given ID, <see cref="FungeSpace"/>, and <see cref="Interpreter"/>.
+    /// The IP is placed at the origin of the space, with a delta pointing to the right, an empty stack-stack,
+    /// and no fingerprints or active modes.
+    /// </summary>
+    /// <param name="id">A unique identifier for the IP.</param>
+    /// <param name="space">The <see cref="FungeSpace"/> in which to create the IP.</param>
+    /// <param name="interpreter">The <see cref="Interpreter"/> the IP is associated with.</param>
     public FungeIP(int id, FungeSpace space, Interpreter interpreter)
     {
         Space = space;
@@ -208,11 +294,21 @@ public class FungeIP
         ID = id;
         for (var i = 0; i < 26; i++)
         {
-            FingerprintStacks[i] = new Stack<FungeFunc>();
+            FingerprintStacks[i] = new Stack<FungeInstruction>();
         }
         Interpreter = interpreter;
     }
 
+    /// <summary>
+    /// Executes the operation associated with the given value.
+    /// </summary>
+    /// <remarks>
+    /// If the value is a letter from 'A' to 'Z', the IP will execute the top instruction on the corresponding
+    /// fingerprint stack. If the stack is empty, the IP will reflect. <br />
+    /// Otherwise, the IP will read its instruction map to find the operation associated with the value. <br />
+    /// If the value is not recognized, the IP will write an error message to the interpreter's error output.
+    /// </remarks>
+    /// <param name="op">The Funge cell value of the operation to execute.</param>
     public void DoOp(FungeInt op)
     {
         if (op >= 'A' && op <= 'Z')
@@ -235,6 +331,7 @@ public class FungeIP
         }
         else
         {
+            Reflect();
             Interpreter.WriteError("Unknown command: " + op + " (" + (char)op + ")\n");
         }
     }
@@ -270,7 +367,7 @@ public class FungeIP
 
     private InstructionMap FindFingerprint(FungeInt code)
     {
-        InstructionMap dict;
+        Dictionary<FungeInt, FungeInstruction> dict;
         switch (InstructionRegistry.TypeOf(code))
         {
             case FingerprintType.Static:
@@ -456,7 +553,18 @@ public class FungeIP
         };
         for (var i = 0; i < 26; i++)
         {
-            newIP.FingerprintStacks[i] = new Stack<FungeFunc>(FingerprintStacks[i]);
+            var stack = FingerprintStacks[i];
+            foreach (var instruction in stack)
+            {
+                var code = instruction.SourceFingerprintCode;
+                if (code is not null)
+                {
+                    // Instanced fingerprints are not necessarily shared between IPs, so we need to create new instances
+                    // when splitting an IP.
+                    // Hence, we use the registry to find corresponding fingerprint instructions for the new IP.
+                    newIP.FingerprintStacks[i].Push(newIP.FindFingerprint(code.Value)[i + 'A']);
+                }
+            }
         }
         newIP.MoveToNext();
         return newIP;

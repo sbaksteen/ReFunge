@@ -7,21 +7,15 @@ using ReFunge.Data;
 namespace ReFunge.Semantics;
 
 using InstructionMap = Dictionary<FungeInt, FungeFunc>;
+using FingerprintMap = Dictionary<FungeInt, FungeInstruction>;
 
 public class InstructionRegistry
 {
-    private Dictionary<FungeFunc, string> _instructionNames = [];
-    
     private Interpreter _interpreter;
-    
-    public string NameOf(FungeFunc func)
-    {
-        return _instructionNames[func];
-    }
 
-    internal InstructionMap CoreInstructions { get; }
+    internal FingerprintMap CoreInstructions { get; }
 
-    private readonly Dictionary<FungeInt, InstructionMap> _staticFingerprints = [];
+    private readonly Dictionary<FungeInt, FingerprintMap> _staticFingerprints = [];
     
     private readonly Dictionary<FungeInt, InstancedFingerprint> _interpreterFingerprints = [];
     private readonly Dictionary<FungeInt, Type> _spaceFingerprints = [];
@@ -90,29 +84,29 @@ public class InstructionRegistry
         return (Activator.CreateInstance(fingerprintType, [space]) as InstancedFingerprint)!;
     }
 
-    public InstructionMap GetStaticFingerprint(FungeInt code)
+    public FingerprintMap GetStaticFingerprint(FungeInt code)
     {
         return _staticFingerprints[code];
     }
 
-    public InstructionMap GetStaticFingerprint(FungeString name)
+    public FingerprintMap GetStaticFingerprint(FungeString name)
     {
         return _staticFingerprints[name.Handprint];
     }
     
-    public InstructionMap GetInterpreterFingerprint(FungeInt code)
+    public FingerprintMap GetInterpreterFingerprint(FungeInt code)
     {
         return _interpreterFingerprints[code].Instructions;
     }
     
-    public InstructionMap GetInterpreterFingerprint(FungeString name)
+    public FingerprintMap GetInterpreterFingerprint(FungeString name)
     {
         return _interpreterFingerprints[name.Handprint].Instructions;
     }
 
-    private InstructionMap ReadFuncs(Type t, string name)
+    private FingerprintMap ReadFuncs(Type t, string name)
     {
-        InstructionMap r = [];
+        FingerprintMap r = [];
         foreach (var method in t.GetMethods(BindingFlags.Static | BindingFlags.Public))
         {
             var attributes = (InstructionAttribute[])method.GetCustomAttributes(typeof(InstructionAttribute));
@@ -121,8 +115,9 @@ public class InstructionRegistry
             var func = FungeFunc.Create(method, null);
             foreach (var attribute in attributes)
             {
-                r[attribute.Instruction] = func;
-                _instructionNames[func] = $"{name}::{attribute.Instruction}";
+                int? code = name != "Core" ? new FungeString(name).Handprint : null;
+                r[attribute.Instruction] = new FungeInstruction(func, $"{name}::{attribute.Instruction}", t,
+                    code);
             }
         }
         foreach (var f in t.GetFields(BindingFlags.Static | BindingFlags.Public))
@@ -132,8 +127,9 @@ public class InstructionRegistry
             {
                 if (f.GetValue(null) is not FungeFunc func) 
                     continue;
-                r[attribute.Instruction] = func;
-                _instructionNames[func] = $"{name}::{attribute.Instruction}";
+                int? code = name != "Core" ? new FungeString(name).Handprint : null;
+                r[attribute.Instruction] = new FungeInstruction(func, $"{name}::{attribute.Instruction}", t,
+                    code);
             }
         }
         return r;
