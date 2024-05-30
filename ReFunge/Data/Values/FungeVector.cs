@@ -6,13 +6,13 @@ namespace ReFunge.Data.Values;
 public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeVector>
 {
 
-    private readonly ImmutableList<int> _values;
-    public int Size => _values.Count;
+    private readonly int[] _values;
+    public int Size => _values.Length;
     public int Dim 
     {
         get
         {
-            for (var i = _values.Count - 1; i >= 0; i--)
+            for (var i = _values.Length - 1; i >= 0; i--)
             {
                 if (_values[i] != 0)
                 {
@@ -26,18 +26,16 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
     public int[] ToArray(int size)
     {
         var result = new int[size];
-        for (var i = 0; i < _values.Count; i++)
+        for (var i = 0; i < size; i++)
         {
-            result[i] = _values[i];
+            result[i] = this[i];
         }
         return result;
     }
 
-    public FungeVector(params int[] values) => _values = values.ToImmutableList();
+    public FungeVector(params int[] values) => _values = [..values];
 
-    public FungeVector(ImmutableList<int> values) => _values = values;
-
-    public FungeVector() => _values = ImmutableList<int>.Empty;
+    public FungeVector() => _values = [];
 
     public static FungeVector Right = new(1);
     public static FungeVector Left = new(-1);
@@ -53,7 +51,7 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
         return new FungeVector(result);
     }
 
-    public int this[int index] => index < _values.Count ? _values[index] : 0;
+    public int this[int index] => index < _values.Length ? _values[index] : 0;
 
     public static FungeVector operator +(FungeVector a, FungeVector b)
     {
@@ -111,7 +109,7 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
         const int prime = 31;
         var hash = 1;
 
-        for (var i = 0; i < _values.Count; i++)
+        for (var i = 0; i < _values.Length; i++)
         {
             var value = _values[i];
             if (value == 0) continue;
@@ -133,8 +131,8 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
 
     public FungeVector SetCoordinate(int i, FungeInt fungeInt)
     {
-        var result = new int[Math.Max(i + 1, _values.Count)];
-        for (var j = 0; j < _values.Count; j++)
+        var result = new int[Math.Max(i + 1, _values.Length)];
+        for (var j = 0; j < _values.Length; j++)
         {
             result[j] = _values[j];
         }
@@ -144,10 +142,10 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
 
     public FungeVector Reverse()
     {
-        var result = new int[_values.Count];
-        for (var i = 0; i < _values.Count; i++)
+        var result = new int[_values.Length];
+        for (var i = 0; i < _values.Length; i++)
         {
-            result[i] = _values[_values.Count - i - 1];
+            result[i] = _values[_values.Length - i - 1];
         }
         return new FungeVector(result);
     }
