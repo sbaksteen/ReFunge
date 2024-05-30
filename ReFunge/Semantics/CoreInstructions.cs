@@ -276,7 +276,7 @@ internal static class CoreInstructions
     [Instruction('"')]
     public static void ToggleStringMode(FungeIP ip)
     {
-        ip.StringMode = !ip.StringMode;
+        ip.ToggleModes(IPModes.StringMode);
     }
 
     [Instruction('\'')]

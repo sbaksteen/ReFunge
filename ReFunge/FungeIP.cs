@@ -8,35 +8,107 @@ namespace ReFunge;
 
 using InstructionMap = Dictionary<FungeInt, FungeFunc>;
 
+/// <summary>
+/// Represents any of various modes an IP can be in. These modes can be independently active. <seealso cref="MODE"/>
+/// </summary>
 [Flags]
 public enum IPModes
 {
     None = 0,
+
+    /// <summary>
+    /// Instead of executing the operations associated with <c>FungeSpace</c> cells, the IP instead pushes
+    /// the integer values of each cell to the stack until it encounters a cell with the value &quot;.
+    /// <seealso cref="CoreInstructions.ToggleStringMode"/>
+    /// </summary>
     StringMode = 1,
+
+    /// <summary>
+    /// The directional instructions &lt;&gt;^vhl and _|m all add to the IP's delta instead of setting it.
+    /// <seealso cref="MODE.ToggleHoverMode"/>
+    /// </summary>
     HoverMode = 2,
+
+    /// <summary>
+    /// The IP always pushes to the bottom of any <see cref="FungeStack"/>s. This does not affect pushing
+    /// new stacks to a <see cref="FungeStackStack"/>.
+    /// <seealso cref="MODE.ToggleInvertMode"/>
+    /// </summary>
     InvertMode = 4,
+
+    /// <summary>
+    /// The IP always pops from the bottom of any <see cref="FungeStack"/>s. This does not affect popping
+    /// stacks from a <see cref="FungeStackStack"/>.
+    /// <seealso cref="MODE.ToggleQueueMode"/>
+    /// </summary>
     QueueMode = 8,
+
+    /// <summary>
+    /// The instructions [](){} all cause the cell at the IP's current position to turn into the opposite bracket
+    /// in addition to their usual effects. For example, with the IP in switch mode, the [ instruction will set
+    /// the cell at the IP's current position to ] and also turn left.
+    /// <seealso cref="MODE.ToggleSwitchMode"/>
+    /// </summary>
     SwitchMode = 16
 }
 
+/// <summary>
+/// An IP (instruction pointer) which lives in a <c>FungeSpace</c>. It can execute instructions in the space and
+/// interact with the interpreter's global functionality.
+/// </summary>
 public class FungeIP
 {
+
+    
+
+    /// <summary>
+    /// The IP's dimensionality. This defines how the IP sees the world, and how it pushes and pops <c>FungeVectors</c>
+    /// on its stack.
+    /// </summary>
     public int Dim { get; set; }
+    
+    /// <summary>
+    /// The space the IP currently lives in.
+    /// </summary>
     public FungeSpace Space { get; set; }
+    
+    /// <summary>
+    /// The stack-stack associated with the IP.
+    /// </summary>
     public FungeStackStack StackStack { get; set; }
 
+    /// <summary>
+    /// The interpreter this IP is bound to.
+    /// </summary>
     public Interpreter Interpreter { get; set; }
 
+    /// <summary>
+    /// This determines whether the IP is dead or alive. If an IP is dead, it will not execute instructions, and
+    /// it will be removed from the interpreter's IP list at the earliest convenience.
+    /// </summary>
     public bool Alive { get; set; } = true;
+    
+    /// <summary>
+    /// If this value is set during execution, the interpreter will immediately stop running after the IP's "turn" is
+    /// over.
+    /// </summary>
     public bool RequestQuit { get; set; } = false;
     
-    public IPModes Modes { get; set; } = IPModes.None;
+    /// <summary>
+    /// This flags enum determines whether the IP is in any number of modes. See <see cref="IPModes"/> for an overview.
+    /// </summary>
+    private IPModes Modes { get; set; } = IPModes.None;
     
     private Dictionary<FungeInt, InstancedFingerprint> _instancedFingerprints = new();
 
+    public void ToggleModes(IPModes modes)
+    {
+        Modes ^= modes;
+    }
+
     public bool StringMode
     {
-        get => (Modes & IPModes.StringMode) != 0;
+        get => Modes.HasFlag(IPModes.StringMode);
         set
         {
             if (value)
@@ -52,7 +124,7 @@ public class FungeIP
     
     public bool HoverMode
     {
-        get => (Modes & IPModes.HoverMode) != 0;
+        get => Modes.HasFlag(IPModes.HoverMode);
         set
         {
             if (value)
@@ -68,7 +140,7 @@ public class FungeIP
     
     public bool InvertMode
     {
-        get => (Modes & IPModes.InvertMode) != 0;
+        get => Modes.HasFlag(IPModes.InvertMode);
         set
         {
             if (value)
@@ -84,7 +156,7 @@ public class FungeIP
     
     public bool QueueMode
     {
-        get => (Modes & IPModes.QueueMode) != 0;
+        get => Modes.HasFlag(IPModes.QueueMode);
         set
         {
             if (value)
@@ -100,7 +172,7 @@ public class FungeIP
     
     public bool SwitchMode
     {
-        get => (Modes & IPModes.SwitchMode) != 0;
+        get => Modes.HasFlag(IPModes.SwitchMode);
         set
         {
             if (value)

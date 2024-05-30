@@ -10,24 +10,24 @@ public static class MODE
     [Instruction('H')]
     public static void ToggleHoverMode(FungeIP ip)
     {
-        ip.HoverMode = !ip.HoverMode;
+        ip.ToggleModes(IPModes.HoverMode);
     }
 
     [Instruction('I')]
     public static void ToggleInvertMode(FungeIP ip)
     {
-        ip.InvertMode = !ip.InvertMode;
+        ip.ToggleModes(IPModes.InvertMode);
     }
 
     [Instruction('Q')]
     public static void ToggleQueueMode(FungeIP ip)
     {
-        ip.QueueMode = !ip.QueueMode;
+        ip.ToggleModes(IPModes.QueueMode);
     }
 
     [Instruction('S')]
     public static void ToggleSwitchMode(FungeIP ip)
     {
-        ip.SwitchMode = !ip.SwitchMode;
+        ip.ToggleModes(IPModes.SwitchMode);
     }
 }
