@@ -57,9 +57,35 @@ public class Interpreter
         Output.Write(c);
     }
 
-    public void WriteInteger(int i)
+    private static char IntToDigit(int i)
     {
-        Output.Write($"{i} ");
+        if (i < 0 || i > 62) throw new ArgumentException("Invalid digit", nameof(i));
+        if (i < 10) return (char)('0' + i);
+        if (i < 36) return (char)('A' + i - 10);
+        return (char)('a' + i - 36);
+    }
+
+    public void WriteInteger(int i, int b = 10)
+    {
+        if (b < 2 || b > 62) throw new ArgumentException("Invalid base", nameof(b));
+        if (i < 0)
+        {
+            Output.Write('-');
+            i = -i;
+        }
+        
+        var stack = new Stack<char>();
+        do
+        {
+            stack.Push(IntToDigit(i % b));
+            i /= b;
+        } while (i > 0);
+
+        foreach (var c in stack)
+        {
+            Output.Write(c);
+        }
+        Output.Write(' ');
     }
 
     public bool EndOfInput()
@@ -72,15 +98,40 @@ public class Interpreter
         return Input.Read();
     }
 
-    public int ReadInteger()
+    private static bool IsDigit(int c, int b)
     {
-        if (Input.Peek() != '-' && (Input.Peek() < '0' || Input.Peek() > '9')) return 0;
+        var fromZero = c >= '0' && c <= '0' + Math.Min(b - 1, 9);
+        var fromA = b > 10 && c >= 'A' && c <= 'A' + b - 11;
+        var froma = b > 36 && c >= 'a' && c <= 'a' + b - 37;
+        return fromZero || fromA || froma;
+    }
+    
+    private static int DigitValue(int c)
+    {
+        switch (c)
+        {
+            case >= '0' and <= '9':
+                return c - '0';
+            case >= 'A' and <= 'Z':
+                return c - 'A' + 10;
+            case >= 'a' and <= 'z':
+                return c - 'a' + 36;
+            default:
+                // Should never happen
+                throw new ArgumentException("Invalid digit", nameof(c));
+        }
+    }
+
+    public int ReadInteger(int b = 10)
+    {
+        if (b < 2 || b > 62) throw new ArgumentException("Invalid base", nameof(b));
+        if (Input.Peek() != '-' && !IsDigit(Input.Peek(), b)) return 0;
         var c = Input.Read();
         if (c == '-') return -ReadInteger();
         var r = 0;
-        while (c >= '0' && c <= '9')
+        while (IsDigit(c, b))
         {
-            r = r * 10 + c - '0';
+            r = r * b + DigitValue(c);
             c = Input.Read();
         }
 
