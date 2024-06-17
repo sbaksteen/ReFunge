@@ -34,23 +34,49 @@ public abstract class InstancedFingerprint
         }
     }
 
+    /// <summary>
+    ///     Creates a new instance of the fingerprint with the given IP. Sets the IP property and fills the Instructions dictionary.
+    /// </summary>
+    /// <param name="ip">The IP to use.</param>
     protected InstancedFingerprint(FungeIP ip) : this()
     {
         _ip = ip;
     }
 
+    /// <summary>
+    ///     Creates a new instance of the fingerprint with the given space. Sets the Space property and fills the Instructions dictionary.
+    /// </summary>
+    /// <param name="space">The space to use.</param>
     protected InstancedFingerprint(FungeSpace space) : this()
     {
         _space = space;
     }
 
+    /// <summary>
+    ///     Creates a new instance of the fingerprint with the given interpreter. Sets the Interpreter property and fills the Instructions dictionary.
+    /// </summary>
+    /// <param name="interpreter"></param>
     protected InstancedFingerprint(Interpreter interpreter) : this()
     {
         _interpreter = interpreter;
     }
 
+    /// <summary>
+    ///     The IP that this fingerprint is associated with.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the IP is not set.</exception>
     protected FungeIP IP => _ip ?? throw new InvalidOperationException("IP not set");
+    
+    /// <summary>
+    ///     The space that this fingerprint is associated with.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the space is not set.</exception>
     protected FungeSpace Space => _space ?? throw new InvalidOperationException("Space not set");
+    
+    /// <summary>
+    ///     The interpreter that this fingerprint is associated with.
+    /// </summary>
+    /// <exception cref="InvalidOperationException">Thrown if the interpreter is not set.</exception>
     protected Interpreter Interpreter => _interpreter ?? throw new InvalidOperationException("Interpreter not set");
 
     /// <summary>

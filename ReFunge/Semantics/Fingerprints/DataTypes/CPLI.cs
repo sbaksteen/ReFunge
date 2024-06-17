@@ -73,10 +73,16 @@ public class CPLI
     /// Represents a complex integer, taking up two stack cells. Supports basic arithmetic operations.
     /// Implements <see cref="IFungeValue{TSelf}"/>, facilitating its use in Funge instructions.
     /// </summary>
-    /// <param name="Re"></param>
-    /// <param name="Im"></param>
+    /// <param name="Re">The real part.</param>
+    /// <param name="Im">The imaginary part.</param>
     public readonly record struct FungeComplex(int Re, int Im) : IFungeValue<FungeComplex>
     {
+
+        /// <summary>
+        /// The complex integer 0 + 0i.
+        /// </summary>
+        public static readonly FungeComplex Zero = new FungeComplex(0, 0);
+        
         /// <summary>
         /// Pops a complex integer from the stack. The imaginary part is popped first.
         /// </summary>
@@ -131,8 +137,8 @@ public class CPLI
         /// <returns>The result of the division, with the non-integer parts discarded, or 0 if the divisor is 0.</returns>
         public static FungeComplex operator /(FungeComplex a, FungeComplex b)
         {
-            if (b == new FungeComplex(0, 0))
-                return new FungeComplex(0, 0);
+            if (b == Zero)
+                return Zero;
             var denominator = b.Re * b.Re + b.Im * b.Im;
             return new FungeComplex((a.Re * b.Re + a.Im * b.Im) / denominator, (a.Im * b.Re - a.Re * b.Im) / denominator);
         }

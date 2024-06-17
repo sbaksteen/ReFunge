@@ -81,27 +81,27 @@ public abstract class FungeFunc
         throw new InvalidOperationException("Method has invalid signature");
     }
 
-    private static FungeFunc CreateHelperAction(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperAction(MethodInfo method, object? instance)
     {
         var dlg = (Action<FungeIP>)Delegate.CreateDelegate(typeof(Action<FungeIP>), instance, method);
         return new FungeAction(dlg);
     }
 
-    private static FungeFunc CreateHelperFunc<TResult>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperFunc<TResult>(MethodInfo method, object? instance)
         where TResult : IFungeValue<TResult>
     {
         var dlg = (Func<FungeIP, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, TResult>), instance, method);
         return new FungeFunc<TResult>(dlg);
     }
 
-    private static FungeFunc CreateHelperAction<T1>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperAction<T1>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1>
     {
         var dlg = (Action<FungeIP, T1>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1>), instance, method);
         return new FungeAction<T1>(dlg);
     }
 
-    private static FungeFunc CreateHelperFunc<T1, TResult>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperFunc<T1, TResult>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1> where TResult : IFungeValue<TResult>
     {
         var dlg = (Func<FungeIP, T1, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, TResult>), instance,
@@ -109,14 +109,14 @@ public abstract class FungeFunc
         return new FungeFunc<T1, TResult>(dlg);
     }
 
-    private static FungeFunc CreateHelperAction<T1, T2>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperAction<T1, T2>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2>
     {
         var dlg = (Action<FungeIP, T1, T2>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2>), instance, method);
         return new FungeAction<T1, T2>(dlg);
     }
 
-    private static FungeFunc CreateHelperFunc<T1, T2, TResult>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperFunc<T1, T2, TResult>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where TResult : IFungeValue<TResult>
     {
         var dlg = (Func<FungeIP, T1, T2, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, T2, TResult>),
@@ -124,7 +124,7 @@ public abstract class FungeFunc
         return new FungeFunc<T1, T2, TResult>(dlg);
     }
 
-    private static FungeFunc CreateHelperAction<T1, T2, T3>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperAction<T1, T2, T3>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3>
     {
         var dlg = (Action<FungeIP, T1, T2, T3>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2, T3>), instance,
@@ -132,7 +132,7 @@ public abstract class FungeFunc
         return new FungeAction<T1, T2, T3>(dlg);
     }
 
-    private static FungeFunc CreateHelperFunc<T1, T2, T3, TResult>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperFunc<T1, T2, T3, TResult>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1>
         where T2 : IFungeValue<T2>
         where T3 : IFungeValue<T3>
@@ -143,7 +143,7 @@ public abstract class FungeFunc
         return new FungeFunc<T1, T2, T3, TResult>(dlg);
     }
 
-    private static FungeFunc CreateHelperAction<T1, T2, T3, T4>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperAction<T1, T2, T3, T4>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4>
     {
         var dlg = (Action<FungeIP, T1, T2, T3, T4>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2, T3, T4>),
@@ -151,7 +151,7 @@ public abstract class FungeFunc
         return new FungeAction<T1, T2, T3, T4>(dlg);
     }
 
-    private static FungeFunc CreateHelperFunc<T1, T2, T3, T4, TResult>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperFunc<T1, T2, T3, T4, TResult>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1>
         where T2 : IFungeValue<T2>
         where T3 : IFungeValue<T3>
@@ -163,7 +163,7 @@ public abstract class FungeFunc
         return new FungeFunc<T1, T2, T3, T4, TResult>(dlg);
     }
 
-    private static FungeFunc CreateHelperAction<T1, T2, T3, T4, T5>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperAction<T1, T2, T3, T4, T5>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1>
         where T2 : IFungeValue<T2>
         where T3 : IFungeValue<T3>
@@ -175,7 +175,7 @@ public abstract class FungeFunc
         return new FungeAction<T1, T2, T3, T4, T5>(dlg);
     }
 
-    private static FungeFunc CreateHelperFunc<T1, T2, T3, T4, T5, TResult>(MethodInfo method, object instance)
+    private static FungeFunc CreateHelperFunc<T1, T2, T3, T4, T5, TResult>(MethodInfo method, object? instance)
         where T1 : IFungeValue<T1>
         where T2 : IFungeValue<T2>
         where T3 : IFungeValue<T3>
