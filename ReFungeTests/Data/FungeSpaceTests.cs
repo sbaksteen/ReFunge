@@ -61,12 +61,12 @@ namespace ReFungeTests.Data
                 _space3D[vector2] = value;
                 Assert.Multiple(() =>
                 {
-                    Assert.That(_space3D.MinCoords[0], Is.EqualTo(1));
-                    Assert.That(_space3D.MinCoords[1], Is.EqualTo(2));
-                    Assert.That(_space3D.MinCoords[2], Is.EqualTo(3));
-                    Assert.That(_space3D.MaxCoords[0], Is.EqualTo(4));
-                    Assert.That(_space3D.MaxCoords[1], Is.EqualTo(5));
-                    Assert.That(_space3D.MaxCoords[2], Is.EqualTo(6));
+                    Assert.That(_space3D.MinBounds[0], Is.EqualTo(1));
+                    Assert.That(_space3D.MinBounds[1], Is.EqualTo(2));
+                    Assert.That(_space3D.MinBounds[2], Is.EqualTo(3));
+                    Assert.That(_space3D.MaxBounds[0], Is.EqualTo(4));
+                    Assert.That(_space3D.MaxBounds[1], Is.EqualTo(5));
+                    Assert.That(_space3D.MaxBounds[2], Is.EqualTo(6));
                 });
             }
 
@@ -134,8 +134,8 @@ namespace ReFungeTests.Data
                 FungeInt value = 42;
                 _space3D[vector1] = value;
                 _space3D[vector2] = value;
-                FungeVector MinBounds = _space3D.MinCoords;
-                FungeVector MaxBounds = _space3D.MaxCoords;
+                FungeVector MinBounds = _space3D.MinBounds;
+                FungeVector MaxBounds = _space3D.MaxBounds;
                 Assert.Multiple(() =>
                 {
                     Assert.That(MinBounds, Is.EqualTo(vector2));
@@ -152,8 +152,8 @@ namespace ReFungeTests.Data
                 _space3D[vector1] = value;
                 _space3D[vector2] = value;
                 _space3D[vector1] = new FungeInt(' ');
-                FungeVector MinBounds = _space3D.MinCoords;
-                FungeVector MaxBounds = _space3D.MaxCoords;
+                FungeVector MinBounds = _space3D.MinBounds;
+                FungeVector MaxBounds = _space3D.MaxBounds;
                 Assert.Multiple(() =>
                 {
                     Assert.That(MinBounds, Is.EqualTo(vector2));
@@ -170,8 +170,8 @@ namespace ReFungeTests.Data
                 _space3D[vector1] = value;
                 _space3D[vector2] = value;
                 _space3D[vector2] = new FungeInt(' ');
-                FungeVector MinBounds = _space3D.MinCoords;
-                FungeVector MaxBounds = _space3D.MaxCoords;
+                FungeVector MinBounds = _space3D.MinBounds;
+                FungeVector MaxBounds = _space3D.MaxBounds;
                 Assert.Multiple(() =>
                 {
                     Assert.That(MinBounds, Is.EqualTo(vector1));
@@ -187,8 +187,8 @@ namespace ReFungeTests.Data
                 _space3D[vector] = 42;
                 _space3D[vector] = ' ';
                 _space3D[negativeVector] = 42;
-                FungeVector MinBounds = _space3D.MinCoords;
-                FungeVector MaxBounds = _space3D.MaxCoords;
+                FungeVector MinBounds = _space3D.MinBounds;
+                FungeVector MaxBounds = _space3D.MaxBounds;
                 Assert.Multiple(() =>
                 {
                     Assert.That(MinBounds, Is.EqualTo(negativeVector));
@@ -224,8 +224,8 @@ namespace ReFungeTests.Data
             {
                 _space1D.LoadString(new FungeVector(), TestString);
 
-                FungeVector MinBounds = _space1D.MinCoords;
-                FungeVector MaxBounds = _space1D.MaxCoords;
+                FungeVector MinBounds = _space1D.MinBounds;
+                FungeVector MaxBounds = _space1D.MaxBounds;
                 string contents = _space1D.WriteToString(MinBounds, MaxBounds + new FungeVector(1,1,1) - MinBounds);
                 Assert.Multiple(() =>
                 {
@@ -240,8 +240,8 @@ namespace ReFungeTests.Data
             {
                 _space2D.LoadString(new FungeVector(), TestString2);
 
-                FungeVector MinBounds = _space2D.MinCoords;
-                FungeVector MaxBounds = _space2D.MaxCoords;
+                FungeVector MinBounds = _space2D.MinBounds;
+                FungeVector MaxBounds = _space2D.MaxBounds;
                 string contents = _space2D.WriteToString(MinBounds, MaxBounds + new FungeVector(1, 1) - MinBounds);
                 Assert.Multiple(() =>
                 {
@@ -257,8 +257,8 @@ namespace ReFungeTests.Data
                 _space1D.LoadString(new FungeVector(), TestString2);
                 string expectedContents = ">2v@.<"; // Newline character is ignored
 
-                FungeVector MinBounds = _space1D.MinCoords;
-                FungeVector MaxBounds = _space1D.MaxCoords;
+                FungeVector MinBounds = _space1D.MinBounds;
+                FungeVector MaxBounds = _space1D.MaxBounds;
                 string contents = _space1D.WriteToString(MinBounds, MaxBounds + new FungeVector(1) - MinBounds);
                 Assert.Multiple(() =>
                 {
@@ -273,8 +273,8 @@ namespace ReFungeTests.Data
             {
                 _space3D.LoadString(new FungeVector(), TestString3);
                 
-                FungeVector minBounds = _space3D.MinCoords;
-                FungeVector maxBounds = _space3D.MaxCoords;
+                FungeVector minBounds = _space3D.MinBounds;
+                FungeVector maxBounds = _space3D.MaxBounds;
                 string contents = _space3D.WriteToString(minBounds, maxBounds + new FungeVector(1,1,1) - minBounds);
                 Assert.Multiple(() =>
                 {
@@ -290,8 +290,8 @@ namespace ReFungeTests.Data
                 _space2D.LoadString(new FungeVector(), TestString3);
                 string expectedContents = ">2v   \n  h@.<\n  ^   "; // Form feed character is ignored
 
-                FungeVector MinBounds = _space2D.MinCoords;
-                FungeVector MaxBounds = _space2D.MaxCoords;
+                FungeVector MinBounds = _space2D.MinBounds;
+                FungeVector MaxBounds = _space2D.MaxBounds;
                 string contents = _space2D.WriteToString(MinBounds, MaxBounds + new FungeVector(1,1) - MinBounds);
                 Assert.Multiple(() =>
                 {
@@ -307,8 +307,8 @@ namespace ReFungeTests.Data
                 _space1D.LoadString(new FungeVector(), TestString3);
                 string expectedContents = ">2v  h@.<  ^"; // Newline and form feed characters are ignored
 
-                FungeVector MinBounds = _space1D.MinCoords;
-                FungeVector MaxBounds = _space1D.MaxCoords;
+                FungeVector MinBounds = _space1D.MinBounds;
+                FungeVector MaxBounds = _space1D.MaxBounds;
                 string contents = _space1D.WriteToString(MinBounds, MaxBounds + new FungeVector(1) - MinBounds);
                 Assert.Multiple(() =>
                 {
@@ -324,8 +324,8 @@ namespace ReFungeTests.Data
                 _space2D.LoadString(new FungeVector(), TestString4);
                 string expectedContents = new StringBuilder().Insert(0, new string('>', 1000) + "\n", 1000).ToString().TrimEnd();
 
-                FungeVector MinBounds = _space2D.MinCoords;
-                FungeVector MaxBounds = _space2D.MaxCoords;
+                FungeVector MinBounds = _space2D.MinBounds;
+                FungeVector MaxBounds = _space2D.MaxBounds;
                 string contents = _space2D.WriteToString(MinBounds, MaxBounds + new FungeVector(1,1) - MinBounds);
                 Assert.Multiple(() =>
                 {
@@ -344,8 +344,8 @@ namespace ReFungeTests.Data
 
                 string expectedContents = ">2v\n  h\f@.<\n  ^";
 
-                FungeVector MinBounds = _space1D.MinCoords;
-                FungeVector MaxBounds = _space1D.MaxCoords;
+                FungeVector MinBounds = _space1D.MinBounds;
+                FungeVector MaxBounds = _space1D.MaxBounds;
                 string contents = _space1D.WriteToString(MinBounds, MaxBounds + new FungeVector(1) - MinBounds);
                 Assert.Multiple(() =>
                 {
@@ -361,8 +361,8 @@ namespace ReFungeTests.Data
                 FungeVector position = new(1, 2, 3);
                 _space3D.LoadString(position, TestString3);
 
-                FungeVector MinBounds = _space3D.MinCoords;
-                FungeVector MaxBounds = _space3D.MaxCoords;
+                FungeVector MinBounds = _space3D.MinBounds;
+                FungeVector MaxBounds = _space3D.MaxBounds;
                 Assert.Multiple(() =>
                 {
                     Assert.That(MinBounds, Is.EqualTo(position));
@@ -376,8 +376,8 @@ namespace ReFungeTests.Data
                 FungeVector position = new(-1, -2, -3);
                 _space3D.LoadString(position, TestString3);
 
-                FungeVector MinBounds = _space3D.MinCoords;
-                FungeVector MaxBounds = _space3D.MaxCoords;
+                FungeVector MinBounds = _space3D.MinBounds;
+                FungeVector MaxBounds = _space3D.MaxBounds;
                 Assert.Multiple(() =>
                 {
                     Assert.That(MinBounds, Is.EqualTo(position));

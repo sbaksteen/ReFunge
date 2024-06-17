@@ -1,19 +1,21 @@
-﻿using ReFunge.Semantics.Fingerprints;
+﻿using ReFunge.Semantics.Fingerprints.Core;
 
 namespace ReFunge.Data.Values;
 
 /// <summary>
-///     A value that can be pushed to and popped from a <see cref="FungeStack"/>, facilitated by a <see cref="FungeIP"/>.
-///     Examples include <see cref="FungeInt"/> and <see cref="FungeVector"/>.
+///     A value that can be pushed to and popped from a <see cref="FungeStack" />, facilitated by a <see cref="FungeIP" />.
+///     Examples include <see cref="FungeInt" /> and <see cref="FungeVector" />.
 /// </summary>
 /// <remarks>
-///     The dependency on <see cref="FungeIP"/> is done so that the IP has the freedom to push and pop in different ways.
-///     See for example <see cref="FungeVector"/>, which models an arbitrary-dimensional vector, and is pushed or popped as an
-///     n-dimensional vector based on the <see cref="FungeIP.Dim"/> property of the IP.
-///     Another area where this is relevant is the insert mode and queue mode implemented for the <see cref="MODE"/> fingerprint,
+///     The dependency on <see cref="FungeIP" /> is done so that the IP has the freedom to push and pop in different ways.
+///     See for example <see cref="FungeVector" />, which models an arbitrary-dimensional vector, and is pushed or popped
+///     as an
+///     n-dimensional vector based on the <see cref="FungeIP.Dim" /> property of the IP.
+///     Another area where this is relevant is the insert mode and queue mode implemented for the <see cref="MODE" />
+///     fingerprint,
 ///     which let the IP push or pop on the bottom of the stack.
 /// </remarks>
-/// <typeparam name="TSelf">The type returned by <see cref="PopFromStack"/>. Should be the same as the inheriting type.</typeparam>
+/// <typeparam name="TSelf">The type returned by <see cref="PopFromStack" />. Should be the same as the inheriting type.</typeparam>
 public interface IFungeValue<out TSelf> where TSelf : IFungeValue<TSelf>
 {
     /// <summary>

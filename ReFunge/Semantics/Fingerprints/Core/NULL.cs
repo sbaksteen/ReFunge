@@ -1,12 +1,17 @@
-﻿namespace ReFunge.Semantics.Fingerprints;
+﻿namespace ReFunge.Semantics.Fingerprints.Core;
 
+/// <summary>
+///     NULL: The null fingerprint. Clears fingerprint functions.
+///     Everything reflects, but explicitly so.
+///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/NULL.markdown)
+/// </summary>
 [Fingerprint("NULL")]
 internal static class NULL
 {
-    // NULL: The null fingerprint. Clears fingerprint functions.
-    // Everything reflects, but explicitly so.
-    // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/NULL.markdown)
-
+    /// <summary>
+    ///     Reflects the IP. Associated with all letters.
+    /// </summary>
+    /// <param name="ip">The IP executing the instruction.</param>
     [Instruction('A')]
     [Instruction('B')]
     [Instruction('C')]

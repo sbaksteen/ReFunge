@@ -2,13 +2,14 @@
 using ReFunge.Data.Values;
 using ReFunge.Semantics;
 using ReFunge.Semantics.Fingerprints;
+using ReFunge.Semantics.Fingerprints.Core;
 
 namespace ReFunge;
 
 using InstructionMap = Dictionary<FungeInt, FungeInstruction>;
 
 /// <summary>
-///     Represents any of various modes an IP can be in. These modes can be independently active. 
+///     Represents any of various modes an IP can be in. These modes can be independently active.
 /// </summary>
 /// <seealso cref="MODE" />
 [Flags]
@@ -17,15 +18,14 @@ public enum IPModes
     None = 0,
 
     /// <summary>
-    ///     Instead of executing the operations associated with <c>FungeSpace</c> cells, the IP instead pushes
+    ///     Instead of executing the operations associated with <see cref="FungeSpace" /> cells, the IP instead pushes
     ///     the integer values of each cell to the stack until it encounters a cell with the value &quot;.
-    ///     <seealso cref="CoreInstructions.ToggleStringMode" />
     /// </summary>
+    /// <seealso cref="CoreInstructions.ToggleStringMode" />
     StringMode = 1,
 
     /// <summary>
     ///     The directional instructions &lt;&gt;^vhl and _|m all add to the IP's delta instead of setting it.
-    ///     
     /// </summary>
     /// <seealso cref="MODE.ToggleHoverMode" />
     HoverMode = 2,
@@ -33,7 +33,6 @@ public enum IPModes
     /// <summary>
     ///     The IP always pushes to the bottom of any <see cref="FungeStack" />s. This does not affect pushing
     ///     new stacks to a <see cref="FungeStackStack" />.
-    ///     
     /// </summary>
     /// <seealso cref="MODE.ToggleInvertMode" />
     InvertMode = 4,
@@ -41,7 +40,6 @@ public enum IPModes
     /// <summary>
     ///     The IP always pops from the bottom of any <see cref="FungeStack" />s. This does not affect popping
     ///     stacks from a <see cref="FungeStackStack" />.
-    ///     
     /// </summary>
     /// <seealso cref="MODE.ToggleQueueMode" />
     QueueMode = 8,
@@ -50,7 +48,6 @@ public enum IPModes
     ///     The instructions [](){} all cause the cell at the IP's current position to turn into the opposite bracket
     ///     in addition to their usual effects. For example, with the IP in switch mode, the [ instruction will set
     ///     the cell at the IP's current position to ] and also turn left.
-    ///     
     /// </summary>
     /// <seealso cref="MODE.ToggleSwitchMode" />
     SwitchMode = 16
@@ -64,11 +61,12 @@ public enum IPModes
 public class FungeIP
 {
     /// <summary>
-    ///     Stores all instanced fingerprints defined for this IP. <seealso cref="FingerprintType.InstancedPerIP" />
+    ///     Stores all instanced fingerprints defined for this IP.
     /// </summary>
     /// <remarks>
     ///     For an example of an instanced fingerprint, see <see cref="HRTI" />.
     /// </remarks>
+    /// <seealso cref="FingerprintType.InstancedPerIP" />
     private readonly Dictionary<FungeInt, InstancedFingerprint> _instancedFingerprints = new();
 
     /// <summary>
@@ -150,8 +148,8 @@ public class FungeIP
     /// <remarks>
     ///     In string mode, instead of executing instructions,
     ///     the IP pushes the values of each cell until it encounters a cell with the value &quot;.
-    ///     <seealso cref="IPModes" />
     /// </remarks>
+    /// <seealso cref="IPModes" />
     public bool StringMode
     {
         get => Modes.HasFlag(IPModes.StringMode);
@@ -170,8 +168,8 @@ public class FungeIP
     /// <remarks>
     ///     In hover mode, the directional instructions &lt;&gt;^vhl and _|m
     ///     all add to the IP's delta instead of setting it.
-    ///     <seealso cref="IPModes" />
     /// </remarks>
+    /// <seealso cref="IPModes" />
     public bool HoverMode
     {
         get => Modes.HasFlag(IPModes.HoverMode);
@@ -190,8 +188,8 @@ public class FungeIP
     /// <remarks>
     ///     In invert mode, the IP always pushes to the bottom of any
     ///     <see cref="FungeStack" />s. This does not affect pushing new stacks to a <see cref="FungeStackStack" />.
-    ///     <seealso cref="IPModes" />
     /// </remarks>
+    /// <seealso cref="IPModes" />
     public bool InvertMode
     {
         get => Modes.HasFlag(IPModes.InvertMode);
@@ -210,8 +208,8 @@ public class FungeIP
     /// <remarks>
     ///     In queue mode, the IP always pops from the bottom of any
     ///     <see cref="FungeStack" />s. This does not affect popping stacks from a <see cref="FungeStackStack" />.
-    ///     <seealso cref="IPModes" />
     /// </remarks>
+    /// <seealso cref="IPModes" />
     public bool QueueMode
     {
         get => Modes.HasFlag(IPModes.QueueMode);
@@ -232,8 +230,8 @@ public class FungeIP
     ///     IP's current position to turn into the opposite bracket in addition to their usual effects.
     ///     For example, with the IP in switch mode, the [ instruction will set the cell at the IP's current position to ]
     ///     and also turn left.
-    ///     <seealso cref="IPModes" />
     /// </remarks>
+    /// <seealso cref="IPModes" />
     public bool SwitchMode
     {
         get => Modes.HasFlag(IPModes.SwitchMode);
@@ -262,8 +260,9 @@ public class FungeIP
     ///     Each stack is associated with a value 'A'-'Z'. The top instruction on each
     ///     stack is executed when the IP encounters a command with the corresponding value. <br />
     ///     Here, the stacks are stored in an array, where the index is the value minus 'A'.
-    ///     <seealso cref="LoadFingerprint" /> <seealso cref="UnloadFingerprint" />
     /// </summary>
+    /// <seealso cref="LoadFingerprint" />
+    /// <seealso cref="UnloadFingerprint" />
     public Stack<FungeInstruction>[] FingerprintStacks { get; } = new Stack<FungeInstruction>[26];
 
     /// <summary>
@@ -440,6 +439,7 @@ public class FungeIP
     ///     If invert mode is active, the value is pushed to the bottom of the TOSS.
     /// </summary>
     /// <param name="value">The value to push.</param>
+    /// <seealso cref="FungeStack.Push" />
     public void PushToStack(FungeInt value)
     {
         StackStack.TOSS.Push(value, InvertMode);
@@ -451,6 +451,7 @@ public class FungeIP
     ///     As with all <see cref="FungeStack" /> operations, an empty stack will pop a zero.
     /// </summary>
     /// <returns>The popped value.</returns>
+    /// <seealso cref="FungeStack.Pop" />
     public FungeInt PopFromStack()
     {
         return StackStack.TOSS.Pop(QueueMode);
@@ -462,10 +463,11 @@ public class FungeIP
     /// </summary>
     /// <param name="value">The value to push.</param>
     /// <exception cref="InvalidOperationException">Thrown if the SOSS does not exist.</exception>
+    /// <seealso cref="FungeStack.Push" />
     public void PushToSOSS(FungeInt value)
     {
         if (StackStack.SOSS is null) throw new InvalidOperationException("No SOSS to push to.");
-        StackStack.SOSS!.Push(value, InvertMode);
+        StackStack.SOSS.Push(value, InvertMode);
     }
 
     /// <summary>
@@ -475,10 +477,11 @@ public class FungeIP
     /// </summary>
     /// <returns>The popped value.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the SOSS does not exist.</exception>
+    /// <seealso cref="FungeStack.Pop" />
     public FungeInt PopFromSOSS()
     {
         if (StackStack.SOSS is null) throw new InvalidOperationException("No SOSS to pop from.");
-        return StackStack.SOSS!.Pop(QueueMode);
+        return StackStack.SOSS.Pop(QueueMode);
     }
 
     /// <summary>
@@ -488,6 +491,7 @@ public class FungeIP
     ///     ignored.
     /// </summary>
     /// <param name="vector">The vector to push.</param>
+    /// <seealso cref="FungeStack.PushVector" />
     public void PushVectorToStack(FungeVector vector)
     {
         StackStack.TOSS.PushVector(vector, Dim, InvertMode);
@@ -499,6 +503,7 @@ public class FungeIP
     ///     As with all <see cref="FungeStack" /> operations, an empty stack will pop a zero vector.
     /// </summary>
     /// <returns>The popped vector, of the IP's dimensionality.</returns>
+    /// <seealso cref="FungeStack.PopVector" />
     public FungeVector PopVectorFromStack()
     {
         return StackStack.TOSS.PopVector(Dim, QueueMode);
@@ -512,10 +517,11 @@ public class FungeIP
     /// </summary>
     /// <param name="vector">The vector to push.</param>
     /// <exception cref="InvalidOperationException">Thrown if the SOSS does not exist.</exception>
+    /// <seealso cref="FungeStack.PushVector" />
     public void PushVectorToSOSS(FungeVector vector)
     {
         if (StackStack.SOSS is null) throw new InvalidOperationException("No SOSS to pop from.");
-        StackStack.SOSS!.PushVector(vector, Dim, InvertMode);
+        StackStack.SOSS.PushVector(vector, Dim, InvertMode);
     }
 
     /// <summary>
@@ -525,10 +531,11 @@ public class FungeIP
     /// </summary>
     /// <returns>The popped vector, of the IP's dimensionality.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the SOSS does not exist.</exception>
+    /// <seealso cref="FungeStack.PopVector" />
     public FungeVector PopVectorFromSOSS()
     {
         if (StackStack.SOSS is null) throw new InvalidOperationException("No SOSS to pop from.");
-        return StackStack.SOSS!.PopVector(Dim, QueueMode);
+        return StackStack.SOSS.PopVector(Dim, QueueMode);
     }
 
     /// <summary>
@@ -537,6 +544,7 @@ public class FungeIP
     ///     A null terminator (ASCII 0) is pushed after the string.
     /// </summary>
     /// <param name="str">The string to push.</param>
+    /// <seealso cref="FungeStack.PushString" />
     public void PushStringToStack(FungeString str)
     {
         StackStack.TOSS.PushString(str, InvertMode);
@@ -550,6 +558,7 @@ public class FungeIP
     ///     thereby returning an empty string.
     /// </summary>
     /// <returns>The popped string.</returns>
+    /// <seealso cref="FungeStack.PopString" />
     public FungeString PopStringFromStack()
     {
         return StackStack.TOSS.PopString(QueueMode);
@@ -562,10 +571,11 @@ public class FungeIP
     /// </summary>
     /// <param name="str">The string to push.</param>
     /// <exception cref="InvalidOperationException">Thrown if the SOSS does not exist.</exception>
+    /// <seealso cref="FungeStack.PushString" />
     public void PushStringToSOSS(FungeString str)
     {
         if (StackStack.SOSS is null) throw new InvalidOperationException("No SOSS to pop from.");
-        StackStack.SOSS!.PushString(str, InvertMode);
+        StackStack.SOSS.PushString(str, InvertMode);
     }
 
     /// <summary>
@@ -577,10 +587,11 @@ public class FungeIP
     /// </summary>
     /// <returns>The popped string.</returns>
     /// <exception cref="InvalidOperationException">Thrown if the SOSS does not exist.</exception>
+    /// <seealso cref="FungeStack.PopString" />
     public FungeString PopStringFromSOSS()
     {
         if (StackStack.SOSS is null) throw new InvalidOperationException("No SOSS to pop from.");
-        return StackStack.SOSS!.PopString(QueueMode);
+        return StackStack.SOSS.PopString(QueueMode);
     }
 
     /// <summary>

@@ -194,6 +194,7 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
     ///     Pops a vector from an IP's stack.
     /// </summary>
     /// <seealso cref="FungeIP.PopVectorFromStack" />
+    /// <seealso cref="FungeStack.PopVector" />
     /// <param name="ip">The IP facilitating the stack operation</param>
     /// <returns>
     ///     A FungeVector created by popping the top <c>n</c> elements of <c>ip</c>'s stack, where <c>n</c> is the
@@ -209,6 +210,7 @@ public readonly struct FungeVector : IFungeValue<FungeVector>, IEquatable<FungeV
     ///     dimensionality of the IP.
     /// </summary>
     /// <seealso cref="FungeIP.PushVectorToStack" />
+    /// <seealso cref="FungeStack.PushVector" />
     /// <param name="ip">The IP facilitating the stack operation.</param>
     public void PushToStack(FungeIP ip)
     {

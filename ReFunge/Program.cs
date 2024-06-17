@@ -56,15 +56,15 @@ internal class Program
     }
 
     [Verb("run", true, HelpText = "Run a Funge-98 program.")]
-    public class RunOptions
+    private class RunOptions
     {
         [Value(0, Required = true, HelpText = "The file to run.", MetaName = "input")]
-        public string InputFile { get; set; }
+        public string InputFile { get; }
 
         [Option('d', "dim", HelpText = "Number of dimensions to run the program in.", Default = 2)]
-        public int Dimensions { get; set; }
+        public int Dimensions { get; }
 
         [Option('t', "time", HelpText = "Show the time taken to run the program.", Default = false)]
-        public bool ShowTime { get; set; }
+        public bool ShowTime { get; }
     }
 }

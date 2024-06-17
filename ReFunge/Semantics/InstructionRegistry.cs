@@ -7,6 +7,9 @@ namespace ReFunge.Semantics;
 
 using InstructionMap = Dictionary<FungeInt, FungeInstruction>;
 
+/// <summary>
+///     A registry of all instructions available to the interpreter. This includes core instructions and fingerprints.
+/// </summary>
 public class InstructionRegistry
 {
     private readonly Interpreter _interpreter;
@@ -17,14 +20,19 @@ public class InstructionRegistry
 
     private readonly Dictionary<FungeInt, InstructionMap> _staticFingerprints = [];
 
+    /// <summary>
+    ///     Create a new instruction registry for the given interpreter, populating it with the core instructions
+    ///     and all fingerprints found in the ReFunge assembly.
+    /// </summary>
+    /// <param name="interpreter">The interpreter to create the registry for.</param>
     public InstructionRegistry(Interpreter interpreter)
     {
-        CoreInstructions = ReadFuncs(typeof(CoreInstructions), "");
+        CoreInstructions = ReadFuncs(typeof(CoreInstructions), "Core");
         foreach (var t in GetType().Assembly.GetTypes())
         {
-            if (t.GetCustomAttribute<FingerprintAttribute>() is not { } attribute)
+            if (t.GetCustomAttribute<FingerprintAttribute>() is null)
                 continue;
-            RegisterFingerprint(attribute.Name, t);
+            RegisterFingerprint(t);
         }
 
         _interpreter = interpreter;
@@ -32,30 +40,46 @@ public class InstructionRegistry
 
     internal InstructionMap CoreInstructions { get; }
 
-    private void RegisterFingerprint(FungeString name, Type t)
+    /// <summary>
+    ///     Register a fingerprint represented by the given type. The type must have a FingerprintAttribute.
+    ///     All instructions in the fingerprint marked with <see cref="InstructionAttribute" />s will be added to the registry.
+    /// </summary>
+    /// <param name="t">The type representing the fingerprint.</param>
+    /// <exception cref="InvalidOperationException">
+    ///     Thrown when the type does not have a <see cref="FingerprintAttribute" />
+    ///     or has an invalid <see cref="FingerprintType" />.
+    /// </exception>
+    public void RegisterFingerprint(Type t)
     {
         if (t.GetCustomAttribute<FingerprintAttribute>() is not { } attribute)
             throw new InvalidOperationException("Fingerprint must have a FingerprintAttribute");
+        var code = new FungeString(attribute.Name).Handprint;
         switch (attribute.Type)
         {
             case FingerprintType.Static:
-                _staticFingerprints[name.Handprint] = ReadFuncs(t, name);
+                _staticFingerprints[code] = ReadFuncs(t, attribute.Name);
                 return;
             case FingerprintType.InstancedPerInterpreter:
-                _interpreterFingerprints[name.Handprint] =
+                _interpreterFingerprints[code] =
                     (Activator.CreateInstance(t, [_interpreter]) as InstancedFingerprint)!;
                 return;
             case FingerprintType.InstancedPerSpace:
-                _spaceFingerprints[name.Handprint] = t;
+                _spaceFingerprints[code] = t;
                 return;
             case FingerprintType.InstancedPerIP:
-                _ipFingerprints[name.Handprint] = t;
+                _ipFingerprints[code] = t;
                 return;
             default:
                 throw new InvalidOperationException("Unknown fingerprint type");
         }
     }
 
+    /// <summary>
+    ///     Get the type of fingerprint represented by the given code.
+    /// </summary>
+    /// <param name="code">The code of the fingerprint.</param>
+    /// <returns>The type of fingerprint.</returns>
+    /// <exception cref="ArgumentException">Thrown when the fingerprint is not found.</exception>
     public FingerprintType TypeOf(FungeInt code)
     {
         if (_staticFingerprints.ContainsKey(code)) return FingerprintType.Static;
@@ -66,6 +90,13 @@ public class InstructionRegistry
         throw new ArgumentException($"Fingerprint {code} not found");
     }
 
+    /// <summary>
+    ///     Create a new instance of the IP-instanced fingerprint represented by the given code.
+    /// </summary>
+    /// <param name="code">The code of the fingerprint.</param>
+    /// <param name="ip">The IP to create the fingerprint for.</param>
+    /// <returns>The new fingerprint instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when the fingerprint is not found.</exception>
     public InstancedFingerprint NewInstance(FungeInt code, FungeIP ip)
     {
         if (_ipFingerprints[code] is not { } fingerprintType)
@@ -74,6 +105,13 @@ public class InstructionRegistry
         return (Activator.CreateInstance(fingerprintType, [ip]) as InstancedFingerprint)!;
     }
 
+    /// <summary>
+    ///     Create a new instance of the space-instanced fingerprint represented by the given code.
+    /// </summary>
+    /// <param name="code">The code of the fingerprint.</param>
+    /// <param name="space">The space to create the fingerprint for.</param>
+    /// <returns>The new fingerprint instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when the fingerprint is not found.</exception>
     public InstancedFingerprint NewInstance(FungeInt code, FungeSpace space)
     {
         if (_spaceFingerprints[code] is not { } fingerprintType)
@@ -82,24 +120,24 @@ public class InstructionRegistry
         return (Activator.CreateInstance(fingerprintType, [space]) as InstancedFingerprint)!;
     }
 
+    /// <summary>
+    ///     Get the static fingerprint represented by the given code.
+    /// </summary>
+    /// <param name="code">The code of the fingerprint.</param>
+    /// <returns>The static fingerprint's instruction map.</returns>
     public InstructionMap GetStaticFingerprint(FungeInt code)
     {
         return _staticFingerprints[code];
     }
 
-    public InstructionMap GetStaticFingerprint(FungeString name)
-    {
-        return _staticFingerprints[name.Handprint];
-    }
-
+    /// <summary>
+    ///     Get the interpreter-instanced fingerprint represented by the given code.
+    /// </summary>
+    /// <param name="code">The code of the fingerprint.</param>
+    /// <returns>The fingerprint instance's instruction map.</returns>
     public InstructionMap GetInterpreterFingerprint(FungeInt code)
     {
         return _interpreterFingerprints[code].Instructions;
-    }
-
-    public InstructionMap GetInterpreterFingerprint(FungeString name)
-    {
-        return _interpreterFingerprints[name.Handprint].Instructions;
     }
 
     private static InstructionMap ReadFuncs(Type t, string name)
@@ -114,7 +152,7 @@ public class InstructionRegistry
             foreach (var attribute in attributes)
             {
                 int? code = name != "Core" ? new FungeString(name).Handprint : null;
-                r[attribute.Instruction] = new FungeInstruction(func, $"{name}::{attribute.Instruction}", t,
+                r[attribute.Instruction] = new FungeInstruction(func, $"{name}::{attribute.Instruction}",
                     code, attribute.MinDimension);
             }
         }
@@ -127,7 +165,7 @@ public class InstructionRegistry
                 if (f.GetValue(null) is not FungeFunc func)
                     continue;
                 int? code = name != "Core" ? new FungeString(name).Handprint : null;
-                r[attribute.Instruction] = new FungeInstruction(func, $"{name}::{attribute.Instruction}", t,
+                r[attribute.Instruction] = new FungeInstruction(func, $"{name}::{attribute.Instruction}",
                     code, attribute.MinDimension);
             }
         }
