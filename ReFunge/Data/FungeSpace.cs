@@ -12,7 +12,9 @@ namespace ReFunge.Data;
 ///     how often cells are removed such that the bounds need to be updated. Updating the bounds when a cell is removed
 ///     at the minimum or maximum bound (when this is the only cell at that bound) is best-case O(dth root of n), where d
 ///     is the dimension of the space and n is the number of cells in the space. In the worst case, this is O(n), when
-///     the space is a line. All other operations are technically O(d), but in practice are O(1) for most use cases. <br />
+///     the space is a line. Access is amortized O(1) in the sense of <see cref="Dictionary{TKey,TValue}"/>, with the
+///     calculation of the vector hash code being O(d). All other operations are also O(d) due to similar considerations.
+///     In practice, O(d) is essentially O(1) for most use cases. <br />
 ///     The space is implemented as a dictionary from FungeVectors to ints,
 ///     with a dictionary-based histogram for each dimension keeping track of the number of cells sharing each coordinate
 ///     in that dimension. This lets us quickly update the minimum and maximum bounds of the space when cells are added,

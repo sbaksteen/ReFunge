@@ -1,5 +1,4 @@
-﻿using System.Numerics;
-using ReFunge.Data.Values;
+﻿using ReFunge.Data.Values;
 
 namespace ReFunge.Semantics.Fingerprints.DataTypes;
 
