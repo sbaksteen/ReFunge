@@ -2,13 +2,28 @@
 
 public readonly record struct FungeInt(int Value) : IFungeValue<FungeInt>
 {
-    public static implicit operator FungeInt(int value) => new(value);
+    public static FungeInt PopFromStack(FungeIP ip)
+    {
+        return ip.PopFromStack();
+    }
 
-    public static implicit operator int(FungeInt me) => me.Value;
+    public void PushToStack(FungeIP ip)
+    {
+        ip.PushToStack(this);
+    }
 
-    public static FungeInt PopFromStack(FungeIP ip) => ip.PopFromStack();
+    public static implicit operator FungeInt(int value)
+    {
+        return new FungeInt(value);
+    }
 
-    public void PushToStack(FungeIP ip) => ip.PushToStack(this);
+    public static implicit operator int(FungeInt me)
+    {
+        return me.Value;
+    }
 
-    public override string ToString() => Value.ToString();
+    public override string ToString()
+    {
+        return Value.ToString();
+    }
 }

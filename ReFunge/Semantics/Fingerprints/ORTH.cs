@@ -7,7 +7,7 @@ public static class ORTH
 {
     // ORTH: Instructions from the Orthogonal programming language.
     // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/ORTH.markdown)
-    
+
     [Instruction('A')]
     public static FungeInt BitwiseAnd(FungeIP _, FungeInt a, FungeInt b)
     {
@@ -32,14 +32,9 @@ public static class ORTH
         ip.Position = ip.Position.SetCoordinate(0, x);
     }
 
-    [Instruction('Y')]
+    [Instruction('Y', 2)]
     public static void SetYPosition(FungeIP ip, FungeInt y)
     {
-        if (ip.Dim < 2)
-        {
-            throw new FungeReflectException();
-        }
-
         ip.Position = ip.Position.SetCoordinate(1, y);
     }
 
@@ -49,14 +44,9 @@ public static class ORTH
         ip.Delta = ip.Delta.SetCoordinate(0, dx);
     }
 
-    [Instruction('W')]
+    [Instruction('W', 2)]
     public static void SetYDelta(FungeIP ip, FungeInt dy)
     {
-        if (ip.Dim < 2)
-        {
-            throw new FungeReflectException();
-        }
-
         ip.Delta = ip.Delta.SetCoordinate(1, dy);
     }
 

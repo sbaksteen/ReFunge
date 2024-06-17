@@ -11,25 +11,23 @@ public abstract class FungeFunc
     {
         var returnType = method.ReturnType;
         var parameterTypes = method.GetParameters().Select(p => p.ParameterType).ToArray();
-        var returnTypeValid = returnType == typeof(void) || 
-                              returnType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFungeValue<>));
+        var returnTypeValid = returnType == typeof(void) ||
+                              returnType.GetInterfaces().Any(i =>
+                                  i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFungeValue<>));
         var parameterTypesValid = parameterTypes.Length > 0 &&
-                                  parameterTypes[0] == typeof(FungeIP) && 
-                                  parameterTypes.Skip(1).All(t => 
-                                      t.GetInterfaces().Any(i => 
+                                  parameterTypes[0] == typeof(FungeIP) &&
+                                  parameterTypes.Skip(1).All(t =>
+                                      t.GetInterfaces().Any(i =>
                                           i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IFungeValue<>)
                                       )
                                   );
         if (!returnTypeValid || !parameterTypesValid)
-        {
-            throw new InvalidOperationException("Method must return an IFungeValue and take only IFungeValues as parameters");
-        }
-        
+            throw new InvalidOperationException(
+                "Method must return an IFungeValue and take only IFungeValues as parameters");
+
         if (method.ReturnType == typeof(void) && method.GetParameters().Length == 1)
-        {
             return CreateHelperAction(method, instance);
-        }
-        
+
         foreach (var helperMethod in typeof(FungeFunc).GetMethods(BindingFlags.Static | BindingFlags.Public))
         {
             if (method.ReturnType == typeof(void) &&
@@ -40,106 +38,132 @@ public abstract class FungeFunc
                 var genericHelperMethod = helperMethod.MakeGenericMethod(genericArguments.ToArray());
                 return (FungeFunc)genericHelperMethod.Invoke(null, [method, instance])!;
             }
+
             if (method.ReturnType != typeof(void) &&
                 helperMethod is { Name: "CreateHelperFunc", IsGenericMethod: true } &&
                 helperMethod.GetGenericArguments().Length == method.GetParameters().Length)
             {
                 var genericArguments = method.GetParameters().Skip(1).Select(p => p.ParameterType)
-                                                             .Append(method.ReturnType).ToList();
+                    .Append(method.ReturnType).ToList();
                 var genericHelperMethod = helperMethod.MakeGenericMethod(genericArguments.ToArray());
                 return (FungeFunc)genericHelperMethod.Invoke(null, [method, instance])!;
             }
         }
+
         throw new ArgumentException("Method has invalid signature");
     }
-    
+
     public static FungeFunc CreateHelperAction(MethodInfo method, object instance)
     {
         var dlg = (Action<FungeIP>)Delegate.CreateDelegate(typeof(Action<FungeIP>), instance, method);
         return new FungeAction(dlg);
     }
-    
-    public static FungeFunc CreateHelperFunc<TResult>(MethodInfo method, object instance) 
+
+    public static FungeFunc CreateHelperFunc<TResult>(MethodInfo method, object instance)
         where TResult : IFungeValue<TResult>
     {
         var dlg = (Func<FungeIP, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, TResult>), instance, method);
         return new FungeFunc<TResult>(dlg);
     }
-    
-    public static FungeFunc CreateHelperAction<T1>(MethodInfo method, object instance) 
+
+    public static FungeFunc CreateHelperAction<T1>(MethodInfo method, object instance)
         where T1 : IFungeValue<T1>
     {
         var dlg = (Action<FungeIP, T1>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1>), instance, method);
         return new FungeAction<T1>(dlg);
     }
-    
-    public static FungeFunc CreateHelperFunc<T1, TResult>(MethodInfo method, object instance) 
+
+    public static FungeFunc CreateHelperFunc<T1, TResult>(MethodInfo method, object instance)
         where T1 : IFungeValue<T1> where TResult : IFungeValue<TResult>
     {
-        var dlg = (Func<FungeIP, T1, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, TResult>), instance, method);
+        var dlg = (Func<FungeIP, T1, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, TResult>), instance,
+            method);
         return new FungeFunc<T1, TResult>(dlg);
     }
-    
-    public static FungeFunc CreateHelperAction<T1, T2>(MethodInfo method, object instance) 
+
+    public static FungeFunc CreateHelperAction<T1, T2>(MethodInfo method, object instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2>
     {
         var dlg = (Action<FungeIP, T1, T2>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2>), instance, method);
         return new FungeAction<T1, T2>(dlg);
     }
-    
-    public static FungeFunc CreateHelperFunc<T1, T2, TResult>(MethodInfo method, object instance) 
+
+    public static FungeFunc CreateHelperFunc<T1, T2, TResult>(MethodInfo method, object instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where TResult : IFungeValue<TResult>
     {
-        var dlg = (Func<FungeIP, T1, T2, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, T2, TResult>), instance, method);
+        var dlg = (Func<FungeIP, T1, T2, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, T2, TResult>),
+            instance, method);
         return new FungeFunc<T1, T2, TResult>(dlg);
     }
-    
-    public static FungeFunc CreateHelperAction<T1, T2, T3>(MethodInfo method, object instance) 
+
+    public static FungeFunc CreateHelperAction<T1, T2, T3>(MethodInfo method, object instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3>
     {
-        var dlg = (Action<FungeIP, T1, T2, T3>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2, T3>), instance, method);
+        var dlg = (Action<FungeIP, T1, T2, T3>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2, T3>), instance,
+            method);
         return new FungeAction<T1, T2, T3>(dlg);
     }
-    
-    public static FungeFunc CreateHelperFunc<T1, T2, T3, TResult>(MethodInfo method, object instance) 
-        where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where TResult : IFungeValue<TResult>
+
+    public static FungeFunc CreateHelperFunc<T1, T2, T3, TResult>(MethodInfo method, object instance)
+        where T1 : IFungeValue<T1>
+        where T2 : IFungeValue<T2>
+        where T3 : IFungeValue<T3>
+        where TResult : IFungeValue<TResult>
     {
-        var dlg = (Func<FungeIP, T1, T2, T3, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, T2, T3, TResult>), instance, method);
+        var dlg = (Func<FungeIP, T1, T2, T3, TResult>)Delegate.CreateDelegate(
+            typeof(Func<FungeIP, T1, T2, T3, TResult>), instance, method);
         return new FungeFunc<T1, T2, T3, TResult>(dlg);
     }
-    
-    public static FungeFunc CreateHelperAction<T1, T2, T3, T4>(MethodInfo method, object instance) 
+
+    public static FungeFunc CreateHelperAction<T1, T2, T3, T4>(MethodInfo method, object instance)
         where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4>
     {
-        var dlg = (Action<FungeIP, T1, T2, T3, T4>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2, T3, T4>), instance, method);
+        var dlg = (Action<FungeIP, T1, T2, T3, T4>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2, T3, T4>),
+            instance, method);
         return new FungeAction<T1, T2, T3, T4>(dlg);
     }
-    
-    public static FungeFunc CreateHelperFunc<T1, T2, T3, T4, TResult>(MethodInfo method, object instance) 
-        where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4> where TResult : IFungeValue<TResult>
+
+    public static FungeFunc CreateHelperFunc<T1, T2, T3, T4, TResult>(MethodInfo method, object instance)
+        where T1 : IFungeValue<T1>
+        where T2 : IFungeValue<T2>
+        where T3 : IFungeValue<T3>
+        where T4 : IFungeValue<T4>
+        where TResult : IFungeValue<TResult>
     {
-        var dlg = (Func<FungeIP, T1, T2, T3, T4, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, T2, T3, T4, TResult>), instance, method);
+        var dlg = (Func<FungeIP, T1, T2, T3, T4, TResult>)Delegate.CreateDelegate(
+            typeof(Func<FungeIP, T1, T2, T3, T4, TResult>), instance, method);
         return new FungeFunc<T1, T2, T3, T4, TResult>(dlg);
     }
-    
-    public static FungeFunc CreateHelperAction<T1, T2, T3, T4, T5>(MethodInfo method, object instance) 
-        where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4> where T5 : IFungeValue<T5>
+
+    public static FungeFunc CreateHelperAction<T1, T2, T3, T4, T5>(MethodInfo method, object instance)
+        where T1 : IFungeValue<T1>
+        where T2 : IFungeValue<T2>
+        where T3 : IFungeValue<T3>
+        where T4 : IFungeValue<T4>
+        where T5 : IFungeValue<T5>
     {
-        var dlg = (Action<FungeIP, T1, T2, T3, T4, T5>)Delegate.CreateDelegate(typeof(Action<FungeIP, T1, T2, T3, T4, T5>), instance, method);
+        var dlg = (Action<FungeIP, T1, T2, T3, T4, T5>)Delegate.CreateDelegate(
+            typeof(Action<FungeIP, T1, T2, T3, T4, T5>), instance, method);
         return new FungeAction<T1, T2, T3, T4, T5>(dlg);
     }
-    
-    public static FungeFunc CreateHelperFunc<T1, T2, T3, T4, T5, TResult>(MethodInfo method, object instance) 
-        where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4> where T5 : IFungeValue<T5> where TResult : IFungeValue<TResult>
+
+    public static FungeFunc CreateHelperFunc<T1, T2, T3, T4, T5, TResult>(MethodInfo method, object instance)
+        where T1 : IFungeValue<T1>
+        where T2 : IFungeValue<T2>
+        where T3 : IFungeValue<T3>
+        where T4 : IFungeValue<T4>
+        where T5 : IFungeValue<T5>
+        where TResult : IFungeValue<TResult>
     {
-        var dlg = (Func<FungeIP, T1, T2, T3, T4, T5, TResult>)Delegate.CreateDelegate(typeof(Func<FungeIP, T1, T2, T3, T4, T5, TResult>), instance, method);
+        var dlg = (Func<FungeIP, T1, T2, T3, T4, T5, TResult>)Delegate.CreateDelegate(
+            typeof(Func<FungeIP, T1, T2, T3, T4, T5, TResult>), instance, method);
         return new FungeFunc<T1, T2, T3, T4, T5, TResult>(dlg);
     }
 }
 
 public class FungeReflectException(Exception? e = null) : Exception(e?.Message, e);
 
-internal class FungeFunc<TResult>(Func<FungeIP, TResult> func) : FungeFunc 
+internal class FungeFunc<TResult>(Func<FungeIP, TResult> func) : FungeFunc
     where TResult : IFungeValue<TResult>
 {
     public override void Execute(FungeIP ip)
@@ -171,8 +195,8 @@ internal class FungeAction(Action<FungeIP> action) : FungeFunc
     }
 }
 
-internal class FungeFunc<T1, TResult>(Func<FungeIP, T1, TResult> func) : FungeFunc 
-    where T1 : IFungeValue<T1> 
+internal class FungeFunc<T1, TResult>(Func<FungeIP, T1, TResult> func) : FungeFunc
+    where T1 : IFungeValue<T1>
     where TResult : IFungeValue<TResult>
 {
     public override void Execute(FungeIP ip)
@@ -190,7 +214,7 @@ internal class FungeFunc<T1, TResult>(Func<FungeIP, T1, TResult> func) : FungeFu
     }
 }
 
-internal class FungeAction<T1>(Action<FungeIP, T1> action) : FungeFunc 
+internal class FungeAction<T1>(Action<FungeIP, T1> action) : FungeFunc
     where T1 : IFungeValue<T1>
 {
     public override void Execute(FungeIP ip)
@@ -207,8 +231,9 @@ internal class FungeAction<T1>(Action<FungeIP, T1> action) : FungeFunc
     }
 }
 
-internal class FungeFunc<T1, T2, TResult>(Func<FungeIP, T1, T2, TResult> func) : FungeFunc 
-    where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> 
+internal class FungeFunc<T1, T2, TResult>(Func<FungeIP, T1, T2, TResult> func) : FungeFunc
+    where T1 : IFungeValue<T1>
+    where T2 : IFungeValue<T2>
     where TResult : IFungeValue<TResult>
 {
     public override void Execute(FungeIP ip)
@@ -227,7 +252,7 @@ internal class FungeFunc<T1, T2, TResult>(Func<FungeIP, T1, T2, TResult> func) :
     }
 }
 
-internal class FungeAction<T1, T2>(Action<FungeIP, T1, T2> action) : FungeFunc 
+internal class FungeAction<T1, T2>(Action<FungeIP, T1, T2> action) : FungeFunc
     where T1 : IFungeValue<T1> where T2 : IFungeValue<T2>
 {
     public override void Execute(FungeIP ip)
@@ -245,8 +270,10 @@ internal class FungeAction<T1, T2>(Action<FungeIP, T1, T2> action) : FungeFunc
     }
 }
 
-internal class FungeFunc<T1, T2, T3, TResult>(Func<FungeIP, T1, T2, T3, TResult> func) : FungeFunc 
-    where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> 
+internal class FungeFunc<T1, T2, T3, TResult>(Func<FungeIP, T1, T2, T3, TResult> func) : FungeFunc
+    where T1 : IFungeValue<T1>
+    where T2 : IFungeValue<T2>
+    where T3 : IFungeValue<T3>
     where TResult : IFungeValue<TResult>
 {
     public override void Execute(FungeIP ip)
@@ -266,7 +293,7 @@ internal class FungeFunc<T1, T2, T3, TResult>(Func<FungeIP, T1, T2, T3, TResult>
     }
 }
 
-internal class FungeAction<T1, T2, T3>(Action<FungeIP, T1, T2, T3> action) : FungeFunc 
+internal class FungeAction<T1, T2, T3>(Action<FungeIP, T1, T2, T3> action) : FungeFunc
     where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3>
 {
     public override void Execute(FungeIP ip)
@@ -285,8 +312,11 @@ internal class FungeAction<T1, T2, T3>(Action<FungeIP, T1, T2, T3> action) : Fun
     }
 }
 
-internal class FungeFunc<T1, T2, T3, T4, TResult>(Func<FungeIP, T1, T2, T3, T4, TResult> func) : FungeFunc 
-    where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4> 
+internal class FungeFunc<T1, T2, T3, T4, TResult>(Func<FungeIP, T1, T2, T3, T4, TResult> func) : FungeFunc
+    where T1 : IFungeValue<T1>
+    where T2 : IFungeValue<T2>
+    where T3 : IFungeValue<T3>
+    where T4 : IFungeValue<T4>
     where TResult : IFungeValue<TResult>
 {
     public override void Execute(FungeIP ip)
@@ -307,10 +337,9 @@ internal class FungeFunc<T1, T2, T3, T4, TResult>(Func<FungeIP, T1, T2, T3, T4, 
     }
 }
 
-internal class FungeAction<T1, T2, T3, T4>(Action<FungeIP, T1, T2, T3, T4> action) : FungeFunc 
+internal class FungeAction<T1, T2, T3, T4>(Action<FungeIP, T1, T2, T3, T4> action) : FungeFunc
     where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4>
 {
-
     public override void Execute(FungeIP ip)
     {
         var arg4 = T4.PopFromStack(ip);
@@ -328,11 +357,14 @@ internal class FungeAction<T1, T2, T3, T4>(Action<FungeIP, T1, T2, T3, T4> actio
     }
 }
 
-internal class FungeFunc<T1, T2, T3, T4, T5, TResult>(Func<FungeIP, T1, T2, T3, T4, T5, TResult> func) : FungeFunc 
-    where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4> where T5 : IFungeValue<T5> 
+internal class FungeFunc<T1, T2, T3, T4, T5, TResult>(Func<FungeIP, T1, T2, T3, T4, T5, TResult> func) : FungeFunc
+    where T1 : IFungeValue<T1>
+    where T2 : IFungeValue<T2>
+    where T3 : IFungeValue<T3>
+    where T4 : IFungeValue<T4>
+    where T5 : IFungeValue<T5>
     where TResult : IFungeValue<TResult>
 {
-
     public override void Execute(FungeIP ip)
     {
         var arg5 = T5.PopFromStack(ip);
@@ -352,8 +384,12 @@ internal class FungeFunc<T1, T2, T3, T4, T5, TResult>(Func<FungeIP, T1, T2, T3, 
     }
 }
 
-internal class FungeAction<T1, T2, T3, T4, T5>(Action<FungeIP, T1, T2, T3, T4, T5> action) : FungeFunc 
-    where T1 : IFungeValue<T1> where T2 : IFungeValue<T2> where T3 : IFungeValue<T3> where T4 : IFungeValue<T4> where T5 : IFungeValue<T5>
+internal class FungeAction<T1, T2, T3, T4, T5>(Action<FungeIP, T1, T2, T3, T4, T5> action) : FungeFunc
+    where T1 : IFungeValue<T1>
+    where T2 : IFungeValue<T2>
+    where T3 : IFungeValue<T3>
+    where T4 : IFungeValue<T4>
+    where T5 : IFungeValue<T5>
 {
     public override void Execute(FungeIP ip)
     {

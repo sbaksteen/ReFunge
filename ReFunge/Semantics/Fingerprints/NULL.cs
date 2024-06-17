@@ -6,7 +6,7 @@ internal static class NULL
     // NULL: The null fingerprint. Clears fingerprint functions.
     // Everything reflects, but explicitly so.
     // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/NULL.markdown)
-    
+
     [Instruction('A')]
     [Instruction('B')]
     [Instruction('C')]
@@ -34,5 +34,8 @@ internal static class NULL
     [Instruction('Y')]
     [Instruction('Z')]
     // This is rather silly.
-    public static void Reflect(FungeIP ip) => ip.Reflect();
+    public static void Reflect(FungeIP ip)
+    {
+        ip.Reflect();
+    }
 }

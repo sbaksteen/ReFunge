@@ -1,21 +1,19 @@
-﻿using System.Text;
-using System.Text.RegularExpressions;
-using ReFunge.Data.Values;
+﻿using ReFunge.Data.Values;
 
 namespace ReFunge.Data;
 
 public class FungeSpace
 {
     private readonly Dictionary<FungeVector, int> _data = [];
-    public int Dim;
-
-    private int[] _minCoords;
-    private int[] _maxCoords;
     private readonly List<Dictionary<int, int>> _hists = [];
+    private readonly int[] _maxCoords;
+    private readonly int[] _minCoords;
 
     private long _cellCount;
 
-    public FungeSpace(int dim) 
+    public int Dim;
+
+    public FungeSpace(int dim)
     {
         Dim = dim;
         _minCoords = new int[dim];
@@ -32,6 +30,42 @@ public class FungeSpace
 
     public FungeVector MaxCoords => new(_maxCoords);
 
+    public FungeInt this[params int[] ints]
+    {
+        get => this[new FungeVector(ints)];
+        set => this[new FungeVector(ints)] = value;
+    }
+
+    public FungeInt this[FungeVector vector]
+    {
+        get
+        {
+            if (vector.Dim > Dim) throw new ArgumentException("Vector is too large for this space!");
+
+            // If there is no record, return 32 (space character)
+            return _data.GetValueOrDefault(vector, 32);
+        }
+        set
+        {
+            if (vector.Dim > Dim) throw new ArgumentException("Vector is too large for this space!");
+
+            if (value == 32)
+            {
+                // If a space is written, remove the record
+                RemoveCell(vector);
+                return;
+            }
+
+            if (!_data.ContainsKey(vector))
+            {
+                NewCell(vector, value);
+                return;
+            }
+
+            _data[vector] = value;
+        }
+    }
+
     private void UpdateMin(int d)
     {
         if (_hists[d].Count == 0)
@@ -39,6 +73,7 @@ public class FungeSpace
             _minCoords[d] = int.MaxValue;
             return;
         }
+
         _minCoords[d] = _hists[d].Keys.Min();
     }
 
@@ -49,15 +84,13 @@ public class FungeSpace
             _maxCoords[d] = int.MinValue;
             return;
         }
+
         _maxCoords[d] = _hists[d].Keys.Max();
     }
 
     private void RemoveCell(FungeVector vector)
     {
-        if (!_data.ContainsKey(vector))
-        {
-            return;
-        }
+        if (!_data.ContainsKey(vector)) return;
         _cellCount--;
         _data.Remove(vector);
         for (var i = 0; i < Dim; i++)
@@ -68,14 +101,8 @@ public class FungeSpace
             _hists[i].Remove(v);
 
             // Check for new lower/upper bounds
-            if (v == _minCoords[i])
-            {
-                UpdateMin(i);
-            }
-            if (v == _maxCoords[i])
-            {
-                UpdateMax(i);
-            }
+            if (v == _minCoords[i]) UpdateMin(i);
+            if (v == _maxCoords[i]) UpdateMax(i);
         }
     }
 
@@ -91,15 +118,10 @@ public class FungeSpace
                 _hists[i][v] = 0;
 
                 // Check for new lower/upper bounds
-                if (v < _minCoords[i])
-                {
-                    _minCoords[i] = v;
-                }
-                if (v > _maxCoords[i])
-                {
-                    _maxCoords[i] = v;
-                }
+                if (v < _minCoords[i]) _minCoords[i] = v;
+                if (v > _maxCoords[i]) _maxCoords[i] = v;
             }
+
             _hists[i][v]++;
         }
     }
@@ -107,12 +129,8 @@ public class FungeSpace
     public bool OutOfBounds(FungeVector vector)
     {
         for (var i = 0; i < Dim; i++)
-        {
             if (vector[i] < _minCoords[i] || vector[i] > _maxCoords[i])
-            {
                 return true;
-            }
-        }
         return false;
     }
 
@@ -120,14 +138,12 @@ public class FungeSpace
     {
         var steps = int.MaxValue;
         for (var i = 0; i < Dim; i++)
-        {
             steps = delta[i] switch
             {
                 > 0 => Math.Min(steps, (position[i] - _minCoords[i]) / delta[i]),
                 < 0 => Math.Min(steps, (position[i] - _maxCoords[i]) / delta[i]),
                 _ => steps
             };
-        }
         return position - delta * steps;
     }
 
@@ -142,7 +158,6 @@ public class FungeSpace
         while (c != -1)
         {
             if (!binary)
-            {
                 switch (c)
                 {
                     case '\r':
@@ -152,10 +167,7 @@ public class FungeSpace
                         continue;
                     case '\n' when Dim > 1:
                     {
-                        if (x - position[0] > maxX)
-                        {
-                            maxX = x - position[0];
-                        }
+                        if (x - position[0] > maxX) maxX = x - position[0];
 
                         x = position[0];
                         y++;
@@ -164,10 +176,7 @@ public class FungeSpace
                     }
                     case '\f' when Dim > 2:
                     {
-                        if (y - position[1] + 1 > maxY)
-                        {
-                            maxY = y - position[1] + 1;
-                        }
+                        if (y - position[1] + 1 > maxY) maxY = y - position[1] + 1;
 
                         x = position[0];
                         y = position[1];
@@ -176,25 +185,16 @@ public class FungeSpace
                         continue;
                     }
                 }
-            }
 
-            if (c != ' ')
-            {
-                this[x, y, z] = c;
-            }
+            if (c != ' ') this[x, y, z] = c;
 
             c = reader.Read();
             x++;
         }
+
         reader.Close();
-        if (x - position[0] > maxX)
-        {
-            maxX = x - position[0];
-        }
-        if (y - position[1] + 1 > maxY)
-        {
-            maxY = y - position[1];
-        }
+        if (x - position[0] > maxX) maxX = x - position[0];
+        if (y - position[1] + 1 > maxY) maxY = y - position[1];
         var maxZ = z - position[2] + 1;
         return Dim switch
         {
@@ -224,14 +224,14 @@ public class FungeSpace
             writer.Close();
             throw new ArgumentException("Can't output 4D or higher Funge-Space!");
         }
+
         for (var i = 0; i < size.Dim; i++)
-        {
             if (size[i] <= 0)
             {
                 writer.Close();
                 throw new ArgumentException("Size can't be non-positive!");
             }
-        }
+
         var end = position + size;
         var x = position[0];
         var y = position[1];
@@ -252,10 +252,7 @@ public class FungeSpace
                         c = this[++x, y, z];
                     }
 
-                    if (x == end[0])
-                    {
-                        continue;
-                    }
+                    if (x == end[0]) continue;
                     if (linear && x < end[0])
                     {
                         if (feedsWithoutContent > 0)
@@ -263,50 +260,38 @@ public class FungeSpace
                             writer.Write(new string('\f', feedsWithoutContent));
                             feedsWithoutContent = 0;
                         }
+
                         if (linesWithoutContent > 0)
                         {
                             writer.Write(new string('\n', linesWithoutContent));
                             linesWithoutContent = 0;
                         }
-                        if (spaces > 0)
-                        {
-                            writer.Write(new string(' ', spaces));
-                        }
+
+                        if (spaces > 0) writer.Write(new string(' ', spaces));
                     }
-                    writer.Write((char)this[x++,y,z]);
+
+                    writer.Write((char)this[x++, y, z]);
                 }
 
-                if (Dim < 2)
-                {
-                    return;
-                }
-                    
+                if (Dim < 2) return;
+
                 linesWithoutContent++;
 
                 y++;
                 x = position[0];
-                if (!linear && y != end[1])
-                {
-                    writer.Write('\n');
-                }
+                if (!linear && y != end[1]) writer.Write('\n');
             }
 
-            if (Dim < 3)
-            {
-                return;
-            }
-                
+            if (Dim < 3) return;
+
             feedsWithoutContent++;
-                
+
             z++;
             y = position[1];
-            if (!linear && z != end[2])
-            {
-                writer.Write('\f');
-            }
+            if (!linear && z != end[2]) writer.Write('\f');
         }
     }
-        
+
     public string WriteToString(FungeVector position, FungeVector size, bool linear = false)
     {
         var writer = new StringWriter();
@@ -319,59 +304,5 @@ public class FungeSpace
         var writer = new StreamWriter(filename);
         WriteToWriter(position, size, writer, linear);
         writer.Close();
-    }
-
-    public FungeInt this[params int[] ints]
-    {
-        get => this[new FungeVector(ints)];
-        set => this[new FungeVector(ints)] = value;
-    }
-
-    public FungeInt this[FungeVector vector]
-    {
-        get
-        {
-            if (vector.Size > Dim)
-            {
-                for (var i = Dim; i < vector.Size; i++)
-                {
-                    if (vector[i] != 0)
-                    {
-                        throw new ArgumentException("Vector is too large for this space!");
-                    }
-                }
-            }
-
-            // If there is no record, return 32 (space character)
-            return _data.GetValueOrDefault(vector, 32);
-
-        }
-        set
-        {
-            if (vector.Size > Dim)
-            {
-                for (var i = Dim; i < vector.Size; i++)
-                {
-                    if (vector[i] != 0)
-                    {
-                        throw new ArgumentException("Vector is too large for this space!");
-                    }
-                }
-            }
-
-            if (value == 32)
-            {
-                // If a space is written, remove the record
-                RemoveCell(vector);
-                return;
-            }
-
-            if (!_data.ContainsKey(vector))
-            {
-                NewCell(vector, value);
-                return;
-            }
-            _data[vector] = value;
-        }
     }
 }

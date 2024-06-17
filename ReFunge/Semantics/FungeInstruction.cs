@@ -2,24 +2,32 @@
 
 public class FungeInstruction
 {
-    private FungeFunc _func;
-    private readonly string _name;
-    private readonly Type _source;
-    private readonly int? _sourceFingerprintCode;
-    
-    public FungeInstruction(FungeFunc func, string name, Type source, int? sourceFingerprintCode = null)
+    private readonly FungeFunc _func;
+
+    public FungeInstruction(FungeFunc func, string name, Type source, int? sourceFingerprintCode = null,
+        int minDimension = 1)
     {
-        _func = func;
-        _name = name;
-        _source = source;
-        _sourceFingerprintCode = sourceFingerprintCode;
+        if (minDimension > 1)
+            _func = new FungeAction(ip =>
+            {
+                if (ip.Dim < minDimension)
+                    throw new FungeReflectException(new InvalidOperationException(
+                        $"{ip}: Operation {name} requires at least {minDimension} dimensions, but only {ip.Dim} are available."));
+
+                func.Execute(ip);
+            });
+        else
+            _func = func;
+        Name = name;
+        Source = source;
+        SourceFingerprintCode = sourceFingerprintCode;
     }
 
-    public string Name => _name;
+    public string Name { get; }
 
-    public Type Source => _source;
+    public Type Source { get; }
 
-    public int? SourceFingerprintCode => _sourceFingerprintCode;
+    public int? SourceFingerprintCode { get; }
 
     public void Execute(FungeIP ip)
     {

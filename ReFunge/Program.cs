@@ -1,26 +1,13 @@
-﻿using System.Reflection;
+﻿using System.Runtime.CompilerServices;
 using CommandLine;
 using CommandLine.Text;
 
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ReFungeTests")]
+[assembly: InternalsVisibleTo("ReFungeTests")]
 
 namespace ReFunge;
 
 internal class Program
 {
-    [Verb("run", isDefault: true, HelpText = "Run a Funge-98 program.")]
-    public class RunOptions
-    {
-        [Value(0, Required = true, HelpText = "The file to run.", MetaName = "input")]
-        public string InputFile { get; set; }
-        
-        [Option('d', "dim", HelpText = "Number of dimensions to run the program in.", Default = 2)]
-        public int Dimensions { get; set; }
-        
-        [Option('t', "time", HelpText = "Show the time taken to run the program.", Default = false)]
-        public bool ShowTime { get; set; }
-    }
-    
     public static void Main(string[] args)
     {
         var parser = new Parser(settings =>
@@ -30,8 +17,8 @@ internal class Program
         });
         var parserResult = parser.ParseArguments<RunOptions>(args);
         parserResult
-              .WithParsed(Run)
-              .WithNotParsed(errs => DisplayHelp(parserResult, errs));
+            .WithParsed(Run)
+            .WithNotParsed(errs => DisplayHelp(parserResult, errs));
     }
 
     private static void DisplayHelp<T>(ParserResult<T> parserResult, IEnumerable<Error> errs)
@@ -53,7 +40,7 @@ internal class Program
             Console.Error.WriteLine($"File {opts.InputFile} does not exist.");
             return;
         }
-        
+
         var now = DateTime.Now;
 
         var interpreter = new Interpreter(opts.Dimensions);
@@ -64,6 +51,20 @@ internal class Program
             var end = DateTime.Now;
             Console.Out.WriteLine($"Time taken: {interpreter.Tick} ticks; {end - now}.");
         }
+
         Environment.Exit(returnValue);
+    }
+
+    [Verb("run", true, HelpText = "Run a Funge-98 program.")]
+    public class RunOptions
+    {
+        [Value(0, Required = true, HelpText = "The file to run.", MetaName = "input")]
+        public string InputFile { get; set; }
+
+        [Option('d', "dim", HelpText = "Number of dimensions to run the program in.", Default = 2)]
+        public int Dimensions { get; set; }
+
+        [Option('t', "time", HelpText = "Show the time taken to run the program.", Default = false)]
+        public bool ShowTime { get; set; }
     }
 }

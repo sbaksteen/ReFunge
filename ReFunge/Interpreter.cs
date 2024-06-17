@@ -6,29 +6,26 @@ namespace ReFunge;
 
 public class Interpreter
 {
+    internal TextWriter Error;
+
+    internal TextReader Input;
+
+    internal int IPID;
     public List<FungeIP> IPList = [];
 
     // New IPs should always be inserted before the parent
     // If the new IP does not have a parent, insert it at the start
     internal List<(FungeIP ip, FungeIP? parent)> NewIPList = [];
 
-    public InstructionRegistry InstructionRegistry { get; }
-
-    internal int IPID;
+    internal TextWriter Output;
 
     public FungeSpace PrimarySpace;
 
-    internal int ReturnValue = 0;
-
     internal bool Quit;
 
-    public long Tick;
-        
-    internal TextWriter Output;
-        
-    internal TextReader Input;
+    internal int ReturnValue = 0;
 
-    internal TextWriter Error;
+    public long Tick;
 
     public Interpreter(int dim = 2, TextReader? input = null, TextWriter? output = null, TextWriter? errorOutput = null)
     {
@@ -42,7 +39,9 @@ public class Interpreter
         PrimarySpace = new FungeSpace(dim);
         IPList.Add(new FungeIP(IPID++, PrimarySpace, this));
     }
-        
+
+    public InstructionRegistry InstructionRegistry { get; }
+
     public void AddNewIP(FungeIP ip, FungeIP? parent = null)
     {
         NewIPList.Add((ip, parent));
@@ -62,7 +61,7 @@ public class Interpreter
     {
         Output.Write($"{i} ");
     }
-        
+
     public bool EndOfInput()
     {
         return Input.Peek() == -1;
@@ -72,30 +71,25 @@ public class Interpreter
     {
         return Input.Read();
     }
-        
+
     public int ReadInteger()
     {
-        if (Input.Peek() != '-' && (Input.Peek() < '0' || Input.Peek() > '9'))
-        {
-            return 0;
-        }
+        if (Input.Peek() != '-' && (Input.Peek() < '0' || Input.Peek() > '9')) return 0;
         var c = Input.Read();
-        if (c == '-')
-        {
-            return -ReadInteger();
-        }
+        if (c == '-') return -ReadInteger();
         var r = 0;
         while (c >= '0' && c <= '9')
         {
             r = r * 10 + c - '0';
             c = Input.Read();
         }
+
         return r;
     }
 
     public void DoStep()
     {
-        if (Quit) { return; }
+        if (Quit) return;
         List<FungeIP> toRemove = [];
         foreach (var ip in IPList)
         {
@@ -105,11 +99,10 @@ public class Interpreter
                 Quit = true;
                 return;
             }
-            if (!ip.Alive)
-            {
-                toRemove.Add(ip);
-            }
+
+            if (!ip.Alive) toRemove.Add(ip);
         }
+
         foreach (var (ip, parent) in NewIPList)
         {
             if (parent is null || !IPList.Contains(parent))
@@ -117,22 +110,18 @@ public class Interpreter
                 IPList.Insert(0, ip);
                 continue;
             }
+
             IPList.Insert(IPList.IndexOf(parent), ip);
         }
+
         NewIPList.Clear();
-        foreach (var ip in toRemove)
-        {
-            IPList.Remove(ip);
-        }
+        foreach (var ip in toRemove) IPList.Remove(ip);
         Tick++;
     }
 
     public int Run()
     {
-        while (!Quit && IPList.Count > 0)
-        {
-            DoStep();
-        }
+        while (!Quit && IPList.Count > 0) DoStep();
         return ReturnValue;
     }
 

@@ -7,24 +7,17 @@ internal static class ROMA
     // Each letter that corresponds to a number in Roman numerals pushes its value to the stack.
     // From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/ROMA.markdown)
 
-    [Instruction('I')]
-    public static FungeFunc Push1 = CoreInstructions.Push1;
+    [Instruction('I')] public static FungeFunc Push1 = CoreInstructions.Push1;
 
-    [Instruction('V')]
-    public static FungeFunc Push5 = CoreInstructions.Push5;
+    [Instruction('V')] public static FungeFunc Push5 = CoreInstructions.Push5;
 
-    [Instruction('X')]
-    public static FungeFunc Push10 = CoreInstructions.Push10;
+    [Instruction('X')] public static FungeFunc Push10 = CoreInstructions.Push10;
 
-    [Instruction('L')]
-    public static FungeFunc Push50 = CoreInstructions.PushNumber(50);
+    [Instruction('L')] public static FungeFunc Push50 = CoreInstructions.PushNumber(50);
 
-    [Instruction('C')]
-    public static FungeFunc Push100 = CoreInstructions.PushNumber(100);
+    [Instruction('C')] public static FungeFunc Push100 = CoreInstructions.PushNumber(100);
 
-    [Instruction('D')]
-    public static FungeFunc Push500 = CoreInstructions.PushNumber(500);
+    [Instruction('D')] public static FungeFunc Push500 = CoreInstructions.PushNumber(500);
 
-    [Instruction('M')]
-    public static FungeFunc Push1000 = CoreInstructions.PushNumber(1000);
+    [Instruction('M')] public static FungeFunc Push1000 = CoreInstructions.PushNumber(1000);
 }
