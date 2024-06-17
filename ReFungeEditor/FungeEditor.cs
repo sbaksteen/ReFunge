@@ -598,7 +598,7 @@ public class FungeEditor : Game
     {
         if (!ImGui.Begin("Interpreter View")) return;
         ImGui.Text("Tick: " + _interpreter.Tick);
-        ImGui.Text($"Space Bounds: {Space.MinCoords}, {Space.MaxCoords}");
+        ImGui.Text($"Space Bounds: {Space.MinBounds}, {Space.MaxBounds}");
         ImGui.Text("IPs: " + IPList.Count);
         ImGui.Text("IP list:");
         ImGui.BeginChild("Scrolling");
@@ -741,8 +741,14 @@ public class FungeEditor : Game
             for (var x = 0; x < end.X; x++)
             {
                 var pos = _topLeft + rightDirection * x + downDirection * y;
-                var c = (char)Space[pos];
+                var i = Space[pos];
+                var c = (char)i;
                 if (c == ' ') continue;
+                if (char.IsControl(c) || i > char.MaxValue)
+                {
+                    _spriteBatch.DrawString(_font, "?", (new Point(x, y) * _charSize - _topLeftAdjust).ToVector2(), Color.Red);
+                    continue;
+                }
                 try
                 {
                     _spriteBatch.DrawString(_font, c.ToString(),
