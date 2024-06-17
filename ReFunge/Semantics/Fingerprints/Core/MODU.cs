@@ -3,8 +3,8 @@
 namespace ReFunge.Semantics.Fingerprints.Core;
 
 /// <summary>
-///     MODU: Modulo arithmetic extension
-///     Implements different modulo behaviors found in various languages
+///     MODU: Modulo arithmetic extension <br />
+///     Implements different modulo behaviors found in various languages <br />
 ///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/MODU.markdown)
 /// </summary>
 [Fingerprint("MODU")]

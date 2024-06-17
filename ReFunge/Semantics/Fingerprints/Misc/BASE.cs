@@ -3,7 +3,7 @@
 namespace ReFunge.Semantics.Fingerprints.Misc;
 
 /// <summary>
-///     BASE: Input/output in different number bases.
+///     BASE: Input/output in different number bases. <br />
 ///     From RC/Funge-98.
 /// </summary>
 [Fingerprint("BASE")]

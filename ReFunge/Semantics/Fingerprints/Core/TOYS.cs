@@ -3,7 +3,7 @@
 namespace ReFunge.Semantics.Fingerprints.Core;
 
 /// <summary>
-///     TOYS: Fun extra instructions, many of which deal with mass modification of Funge-space.
+///     TOYS: Fun extra instructions, many of which deal with mass modification of Funge-space. <br />
 ///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/TOYS.markdown)
 /// </summary>
 /// <remarks>

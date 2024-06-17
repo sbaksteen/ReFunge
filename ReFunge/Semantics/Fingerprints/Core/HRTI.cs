@@ -4,8 +4,8 @@ using ReFunge.Data.Values;
 namespace ReFunge.Semantics.Fingerprints.Core;
 
 /// <summary>
-///     HRTI: High Resolution Timer Interface
-///     Provides access to high resolution timers for measuring time intervals
+///     HRTI: High Resolution Timer Interface <br />
+///     Provides access to high resolution timers for measuring time intervals <br />
 ///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/HRTI.markdown)
 /// </summary>
 [Fingerprint("HRTI", FingerprintType.InstancedPerIP)]

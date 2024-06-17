@@ -1,8 +1,8 @@
 ﻿namespace ReFunge.Semantics.Fingerprints.Core;
 
 /// <summary>
-///     MODE: Funge-98 standard mode control
-///     Allows for changing several IP modes.
+///     MODE: Funge-98 standard mode control <br />
+///     Allows for changing several IP modes. <br />
 ///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/MODE.markdown)
 /// </summary>
 [Fingerprint("MODE")]

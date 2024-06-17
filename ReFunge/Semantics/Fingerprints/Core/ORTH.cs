@@ -3,7 +3,7 @@
 namespace ReFunge.Semantics.Fingerprints.Core;
 
 /// <summary>
-///     ORTH: Instructions from the Orthogonal programming language.
+///     ORTH: Instructions from the Orthogonal programming language. <br />
 ///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/ORTH.markdown)
 /// </summary>
 [Fingerprint("ORTH")]

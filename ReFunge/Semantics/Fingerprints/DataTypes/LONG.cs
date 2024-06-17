@@ -3,8 +3,8 @@
 namespace ReFunge.Semantics.Fingerprints.DataTypes;
 
 /// <summary>
-///     LONG: Long integers
-///     Implements long integers, taking up two stack cells.
+///     LONG: Long integers <br />
+///     Implements long integers, taking up two stack cells. <br />
 ///     From RC/Funge-98.
 /// </summary>
 [Fingerprint("LONG")]

@@ -4,9 +4,9 @@ using ReFunge.Data.Values;
 namespace ReFunge.Semantics.Fingerprints.DataTypes;
 
 /// <summary>
-///     FPSP: Floating-point (single precision) extension
+///     FPSP: Floating-point (single precision) extension <br />
 ///     Implements single-precision floating-point arithmetic.
-///     Allows floats to be stored on the stack as integers representing the bits of the float.
+///     Allows floats to be stored on the stack as integers representing the bits of the float. <br />
 ///     From RC/Funge-98.
 /// </summary>
 [Fingerprint("FPSP")]

@@ -3,7 +3,7 @@
 namespace ReFunge.Semantics.Fingerprints.Core;
 
 /// <summary>
-///     REFC: Store references to vectors.
+///     REFC: Store references to vectors. <br />
 ///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/REFC.markdown)
 /// </summary>
 [Fingerprint("REFC", FingerprintType.InstancedPerInterpreter)]

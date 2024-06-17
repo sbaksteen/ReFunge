@@ -7,8 +7,8 @@ namespace ReFunge.Semantics.Fingerprints.DataTypes;
 using FungeFloat = FPSP.FungeFloat;
 
 /// <summary>
-///     3DSP: 3D Space Manipulation
-///     Allows for linear algebra operations in 3D space. This includes 3D vectors and 4x4 matrices.
+///     3DSP: 3D Space Manipulation <br />
+///     Allows for linear algebra operations in 3D space. This includes 3D vectors and 4x4 matrices. <br />
 ///     From RC/Funge-98.
 /// </summary>
 /// <remarks>

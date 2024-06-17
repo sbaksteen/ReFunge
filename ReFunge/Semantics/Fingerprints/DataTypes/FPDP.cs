@@ -4,9 +4,9 @@ using ReFunge.Data.Values;
 namespace ReFunge.Semantics.Fingerprints.DataTypes;
 
 /// <summary>
-///     FPDP: Floating-point (double precision) extension
-///     Implements double-precision floating-point arithmetic.
-///     Allows doubles to be stored on the stack as two stack cells representing the bits of the double.
+///     FPDP: Floating-point (double precision) extension <br />
+///     Implements double-precision floating-point arithmetic. 
+///     Allows doubles to be stored on the stack as two stack cells representing the bits of the double. <br />
 ///     From RC/Funge-98.
 /// </summary>
 [Fingerprint("FPDP")]

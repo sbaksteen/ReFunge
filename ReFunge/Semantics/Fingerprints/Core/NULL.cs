@@ -1,8 +1,8 @@
 ﻿namespace ReFunge.Semantics.Fingerprints.Core;
 
 /// <summary>
-///     NULL: The null fingerprint. Clears fingerprint functions.
-///     Everything reflects, but explicitly so.
+///     NULL: The null fingerprint. Clears fingerprint functions. <br />
+///     Everything reflects, but explicitly so. <br />
 ///     From the Funge-98 specification (https://github.com/catseye/Funge-98/blob/master/library/NULL.markdown)
 /// </summary>
 [Fingerprint("NULL")]
