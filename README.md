@@ -11,7 +11,7 @@ It lets you view Funge-Space, IP and stack data, and other useful variables duri
 - Support for the core Funge-98 language
 - File I/O and concurrency are supported
 - Currently supported fingerprints:
-  - All those defined in the official specification, except for `PERL` and `WIND`
+  - All those defined in the official specification, except for `PERL` and `TURT`
   - `LONG`, `FPSP`, `FPDP`, `CPLI`, `3DSP`, `BASE`
   - More to come!
 - Supports arbitrary n-dimensional Euclidean Funges (with Lahey-space wrapping).
