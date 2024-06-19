@@ -10,9 +10,10 @@ namespace ReFunge;
 /// </summary>
 public class Interpreter
 {
-    private readonly TextWriter Error;
+    public TextWriter Error { get; set; }
+    public TextWriter Output { get; set; }
 
-    private readonly TextReader Input;
+    public TextReader Input { get; set; }
 
     /// <summary>
     ///     The ID of the next IP to be created. This is used to assign unique IDs to each IP.
@@ -28,7 +29,6 @@ public class Interpreter
     // If the new IP does not have a parent, insert it at the start
     private readonly List<(FungeIP ip, FungeIP? parent)> NewIPList = [];
 
-    private readonly TextWriter Output;
 
     /// <summary>
     ///     The primary Funge space for the interpreter. This is where the main program is loaded and executed.
