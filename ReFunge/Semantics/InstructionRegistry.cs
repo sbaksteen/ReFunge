@@ -14,9 +14,12 @@ public class InstructionRegistry
 {
     private readonly Interpreter _interpreter;
 
-    private readonly Dictionary<FungeInt, InstancedFingerprint> _interpreterFingerprints = [];
+    private readonly Dictionary<FungeInt, Type> _interpreterFingerprints = [];
+    public List<FungeInt> InterpreterFingerprints => _interpreterFingerprints.Keys.ToList();
     private readonly Dictionary<FungeInt, Type> _ipFingerprints = [];
+    public List<FungeInt> IPFingerprints => _ipFingerprints.Keys.ToList();
     private readonly Dictionary<FungeInt, Type> _spaceFingerprints = [];
+    public List<FungeInt> SpaceFingerprints => _spaceFingerprints.Keys.ToList();
 
     private readonly Dictionary<FungeInt, InstructionMap> _staticFingerprints = [];
 
@@ -60,8 +63,7 @@ public class InstructionRegistry
                 _staticFingerprints[code] = ReadFuncs(t, attribute.Name);
                 return;
             case FingerprintType.InstancedPerInterpreter:
-                _interpreterFingerprints[code] =
-                    (Activator.CreateInstance(t, [_interpreter]) as InstancedFingerprint)!;
+                _interpreterFingerprints[code] = t;
                 return;
             case FingerprintType.InstancedPerSpace:
                 _spaceFingerprints[code] = t;
@@ -121,6 +123,21 @@ public class InstructionRegistry
     }
 
     /// <summary>
+    ///     Create a new instance of the interpreter-instanced fingerprint represented by the given code.
+    /// </summary>
+    /// <param name="code">The code of the fingerprint.</param>
+    /// <param name="interpreter">The interpreter to create the fingerprint for.</param>
+    /// <returns>The new fingerprint instance.</returns>
+    /// <exception cref="ArgumentException">Thrown when the fingerprint is not found.</exception>
+    public InstancedFingerprint NewInstance(FungeInt code, Interpreter interpreter)
+    {
+        if (_interpreterFingerprints[code] is not { } fingerprintType)
+            throw new ArgumentException($"Fingerprint {code} not found");
+
+        return (Activator.CreateInstance(fingerprintType, [interpreter]) as InstancedFingerprint)!;
+    }
+
+    /// <summary>
     ///     Get the static fingerprint represented by the given code.
     /// </summary>
     /// <param name="code">The code of the fingerprint.</param>
@@ -128,16 +145,6 @@ public class InstructionRegistry
     public InstructionMap GetStaticFingerprint(FungeInt code)
     {
         return _staticFingerprints[code];
-    }
-
-    /// <summary>
-    ///     Get the interpreter-instanced fingerprint represented by the given code.
-    /// </summary>
-    /// <param name="code">The code of the fingerprint.</param>
-    /// <returns>The fingerprint instance's instruction map.</returns>
-    public InstructionMap GetInterpreterFingerprint(FungeInt code)
-    {
-        return _interpreterFingerprints[code].Instructions;
     }
 
     private static InstructionMap ReadFuncs(Type t, string name)

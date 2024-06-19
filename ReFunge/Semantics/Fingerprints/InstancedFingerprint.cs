@@ -35,7 +35,8 @@ public abstract class InstancedFingerprint
     }
 
     /// <summary>
-    ///     Creates a new instance of the fingerprint with the given IP. Sets the IP property and fills the Instructions dictionary.
+    ///     Creates a new instance of the fingerprint with the given IP. Sets the IP property and fills the Instructions dictionary. <br />
+    ///     IP-instanced fingerprints are initialized when an IP first loads the fingerprint.
     /// </summary>
     /// <param name="ip">The IP to use.</param>
     protected InstancedFingerprint(FungeIP ip) : this()
@@ -53,7 +54,8 @@ public abstract class InstancedFingerprint
     }
 
     /// <summary>
-    ///     Creates a new instance of the fingerprint with the given interpreter. Sets the Interpreter property and fills the Instructions dictionary.
+    ///     Creates a new instance of the fingerprint with the given interpreter. Sets the Interpreter property and fills the Instructions dictionary. <br />
+    ///     Interpreter-instanced fingerprints are initialized when the interpreter is initialized, or manually (e.g. by TRDS when time is rewound).
     /// </summary>
     /// <param name="interpreter"></param>
     protected InstancedFingerprint(Interpreter interpreter) : this()
@@ -94,4 +96,9 @@ public abstract class InstancedFingerprint
     ///     The name of the fingerprint.
     /// </summary>
     public string Name { get; }
+
+    public virtual void EachTick(long tickNo)
+    {
+        
+    }
 }

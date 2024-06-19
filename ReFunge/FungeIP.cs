@@ -385,7 +385,7 @@ public class FungeIP
                 dict = InstructionRegistry.GetStaticFingerprint(code);
                 break;
             case FingerprintType.InstancedPerInterpreter:
-                dict = InstructionRegistry.GetInterpreterFingerprint(code);
+                dict = Interpreter.Fingerprints[code].Instructions;
                 break;
             case FingerprintType.InstancedPerSpace:
                 // Not implemented yet
@@ -751,5 +751,17 @@ public class FungeIP
 
         newIP.MoveToNext();
         return newIP;
+    }
+
+    public void Freeze()
+    {
+        Frozen = true;
+    }
+
+    public bool Frozen { get; set; }
+
+    public void Unfreeze()
+    {
+        Frozen = false;
     }
 }

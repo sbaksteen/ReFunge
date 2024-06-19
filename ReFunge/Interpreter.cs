@@ -1,6 +1,7 @@
 ﻿using ReFunge.Data;
 using ReFunge.Data.Values;
 using ReFunge.Semantics;
+using ReFunge.Semantics.Fingerprints;
 
 namespace ReFunge;
 
@@ -14,6 +15,8 @@ public class Interpreter
     public TextWriter Output { get; set; }
 
     public TextReader Input { get; set; }
+
+    public Dictionary<FungeInt, InstancedFingerprint> Fingerprints { get; } = new();
 
     /// <summary>
     ///     The ID of the next IP to be created. This is used to assign unique IDs to each IP.
@@ -55,7 +58,7 @@ public class Interpreter
     ///     The error output stream for the interpreter. If null, defaults to
     ///     <see cref="Console.Error" />.
     /// </param>
-    public Interpreter(int dim = 2, TextReader? input = null, TextWriter? output = null, TextWriter? errorOutput = null)
+    public Interpreter(int dim = 2, TextReader? input = null, TextWriter? output = null, TextWriter? errorOutput = null, string? inFile = null)
     {
         input ??= Console.In;
         output ??= Console.Out;
@@ -65,7 +68,15 @@ public class Interpreter
         Input = input;
         Error = errorOutput;
         PrimarySpace = new FungeSpace(dim);
+        if (inFile is not null)
+        {
+            PrimarySpace.LoadFile(new FungeVector(), inFile);
+        }
         IPList.Add(new FungeIP(IPID++, PrimarySpace, this));
+        foreach (var c in InstructionRegistry.InterpreterFingerprints)
+        {
+            Fingerprints[c] = InstructionRegistry.NewInstance(c, this);
+        }
     }
 
     /// <summary>
@@ -217,9 +228,19 @@ public class Interpreter
     public void DoStep()
     {
         if (Quit) return;
+        foreach (var f in Fingerprints.Values)
+        {
+            f.EachTick(Tick);
+        }
         List<FungeIP> toRemove = [];
         foreach (var ip in IPList)
         {
+            if (ip.Frozen) continue;
+            if (!ip.Alive)
+            {
+                toRemove.Add(ip);
+                continue;
+            }
             ip.Step();
             if (ip.RequestQuit)
             {

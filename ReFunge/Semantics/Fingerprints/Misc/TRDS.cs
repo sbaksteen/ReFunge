@@ -9,7 +9,11 @@ public class TRDS : InstancedFingerprint
 {
     public TRDS(Interpreter interpreter) : base(interpreter)
     {
-        
+        Interpreter.Input = _reader = new TardisReader(Interpreter.Input);
+        Interpreter.Output = _outputWriter = new TardisWriter(Interpreter.Output);
+        Interpreter.Error = _errorWriter = new TardisWriter(Interpreter.Error);
+
+        _initialSpace = Interpreter.PrimarySpace.Clone();
     }
 
     private TardisReader _reader;
@@ -19,24 +23,25 @@ public class TRDS : InstancedFingerprint
 
     private Dictionary<long, FungeIP> _travelingIPs = new();
 
-    public override void Initialize()
-    {
-        Interpreter.Input = _reader = new TardisReader(Interpreter.Input);
-        Interpreter.Output = _outputWriter = new TardisWriter(Interpreter.Output);
-        Interpreter.Error = _errorWriter = new TardisWriter(Interpreter.Error);
-
-        _initialSpace = Interpreter.PrimarySpace.Clone();
-    }
-
     public override void EachTick(long tickNo)
     {
         if (_travelingIPs.TryGetValue(tickNo, out var ip))
         {
-            Interpreter.AddNewIP(ip);
+            if (Interpreter.IPList.Contains(ip))
+            {
+                ip.Unfreeze();
+            }
+            else
+            {
+                Interpreter.AddNewIP(ip);
+                
+            }
+
+            _travelingIPs.Remove(tickNo);
         }
     }
 
-    public class TardisReader : TextReader
+    private class TardisReader : TextReader
     {
         private TextReader _reader;
         private bool _rewind = false;
@@ -86,7 +91,7 @@ public class TRDS : InstancedFingerprint
         }
     }
 
-    public class TardisWriter : TextWriter
+    private class TardisWriter : TextWriter
     {
         private TextWriter _writer;
         private bool _write = true;

@@ -431,4 +431,15 @@ public class FungeSpace
         WriteToWriter(position, size, writer, linear);
         writer.Close();
     }
+
+    public FungeSpace Clone()
+    {
+        FungeSpace r = new FungeSpace(Dim);
+        foreach (var t in _data)
+        {
+            r[t.Key] = t.Value;
+        }
+
+        return r;
+    }
 }
